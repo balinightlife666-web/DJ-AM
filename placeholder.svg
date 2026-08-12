@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#182235"/><stop offset="1" stop-color="#0a0f1b"/></linearGradient></defs>
+  <rect width="400" height="400" fill="url(#g)"/>
+  <circle cx="200" cy="200" r="105" fill="none" stroke="#334155" stroke-width="12"/>
+  <circle cx="200" cy="200" r="32" fill="#8b5cf6"/>
+  <text x="200" y="350" fill="#94a3b8" text-anchor="middle" font-family="system-ui,sans-serif" font-size="32" font-weight="700">ACC DJ</text>
+</svg>
