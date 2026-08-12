@@ -45,3 +45,11 @@ To physically separate them, use a USB-C audio DAC plus a DJ split-cue cable / s
 - Pitch control changes playback rate; true key-lock needs time-stretch DSP (future version).
 - Browser/mobile audio behavior varies by Android device and DAC.
 - Audius stream/API availability and CORS behavior are controlled by Audius and may evolve.
+
+## v2 update
+- MUSIC button opens a floating music browser over the mixer.
+- Trending loads automatically the first time MUSIC is opened.
+- Quick genre chips for discovery without knowing track titles.
+- LOAD A / LOAD B buttons stay inside each result card.
+- SYNC on either deck matches that deck's tempo to the other deck when both tracks expose BPM metadata (±8% range).
+- Current SYNC is tempo/BPM sync; beat-phase sync requires beat-grid analysis and is planned for the next engine revision.

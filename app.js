@@ -18,6 +18,7 @@
     masterGain: null,
     normalOut: null,
     audioReady: false,
+    musicLoaded: false,
   };
 
   function formatTime(seconds) {
@@ -30,6 +31,68 @@
     const el = $('libraryMessage');
     el.textContent = text;
     el.style.color = error ? '#fb7185' : '';
+  }
+
+  function openMusic() {
+    const drawer = $('musicDrawer');
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    if (!state.musicLoaded) {
+      state.musicLoaded = true;
+      searchTracks('', true);
+    }
+  }
+
+  function closeMusic() {
+    const drawer = $('musicDrawer');
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+  }
+
+  function effectiveBpm(id) {
+    const d = state.decks[id];
+    const bpm = Number(d?.track?.bpm);
+    if (!bpm || !Number.isFinite(bpm)) return null;
+    return bpm * (Number(d.audio.playbackRate) || 1);
+  }
+
+  function updateBpmDisplay(id) {
+    const d = state.decks[id];
+    const base = Number(d?.track?.bpm);
+    if (!base || !Number.isFinite(base)) {
+      $(`bpm${id}`).textContent = 'BPM —';
+      return;
+    }
+    const eff = effectiveBpm(id);
+    const changed = Math.abs((d.audio.playbackRate || 1) - 1) > 0.0005;
+    $(`bpm${id}`).textContent = changed ? `BPM ${eff.toFixed(1)}*` : `BPM ${base}`;
+  }
+
+  async function syncDeck(targetId) {
+    await initAudio();
+    const masterId = targetId === 'A' ? 'B' : 'A';
+    const target = state.decks[targetId];
+    const master = state.decks[masterId];
+    if (!target?.track || !master?.track) {
+      return setMessage(`Load lagu ke Deck A dan B dulu untuk SYNC.`, true);
+    }
+    const targetBase = Number(target.track.bpm);
+    const masterNow = effectiveBpm(masterId);
+    if (!targetBase || !masterNow) {
+      return setMessage(`BPM metadata salah satu track tidak tersedia. Pilih track lain untuk SYNC.`, true);
+    }
+    const rate = masterNow / targetBase;
+    const percent = (rate - 1) * 100;
+    if (Math.abs(percent) > 8) {
+      return setMessage(`Beda tempo terlalu jauh (${percent > 0 ? '+' : ''}${percent.toFixed(1)}%). SYNC v2 dibatasi ±8%.`, true);
+    }
+    target.audio.playbackRate = rate;
+    $(`pitch${targetId}`).value = percent.toFixed(1);
+    $(`pitchLabel${targetId}`).textContent = `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%`;
+    updateBpmDisplay(targetId);
+    const btn = document.querySelector(`[data-action="sync"][data-deck="${targetId}"]`);
+    btn.classList.add('synced');
+    setMessage(`Deck ${targetId} tempo sync → Deck ${masterId} (${masterNow.toFixed(1)} BPM).`);
   }
 
   function initSdk() {
@@ -228,6 +291,9 @@
     const deck = state.decks[id];
     deck.audio.pause();
     deck.audio.currentTime = 0;
+    deck.audio.playbackRate = 1;
+    $(`pitch${id}`).value = 0;
+    $(`pitchLabel${id}`).textContent = '0.0%';
     deck.track = track;
 
     // Audius track stream endpoint. Browser follows the audio redirect.
@@ -237,11 +303,13 @@
     $(`title${id}`).textContent = track.title;
     $(`artist${id}`).textContent = track.artist;
     $(`cover${id}`).src = track.artwork || 'icons/placeholder.svg';
-    $(`bpm${id}`).textContent = `BPM ${track.bpm || '—'}`;
+    updateBpmDisplay(id);
     $(`key${id}`).textContent = `KEY ${track.key || '—'}`;
     $(`duration${id}`).textContent = formatTime(track.duration);
     $(`seek${id}`).value = 0;
     $(`time${id}`).textContent = '00:00';
+    document.querySelector(`[data-action="sync"][data-deck="${id}"]`)?.classList.remove('synced');
+    setMessage(`${track.title} → Deck ${id} loaded.`);
   }
 
   async function togglePlay(id) {
@@ -286,6 +354,8 @@
     const p = Number(percent);
     deck.audio.playbackRate = 1 + p / 100;
     $(`pitchLabel${id}`).textContent = `${p >= 0 ? '+' : ''}${p.toFixed(1)}%`;
+    updateBpmDisplay(id);
+    document.querySelector(`[data-action="sync"][data-deck="${id}"]`)?.classList.remove('synced');
   }
 
   function drawLoop() {
@@ -329,6 +399,15 @@
     $('apiKeyInput').value = state.apiKey;
     initSdk();
 
+    $('musicBtn').addEventListener('click', openMusic);
+    $('closeMusicBtn').addEventListener('click', closeMusic);
+    document.querySelectorAll('[data-genre]').forEach(btn => btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-genre]').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+      $('genreSelect').value = btn.dataset.genre;
+      searchTracks('', true);
+    }));
+
     $('settingsBtn').addEventListener('click', () => $('settingsDialog').showModal());
     $('saveKeyBtn').addEventListener('click', () => {
       state.apiKey = $('apiKeyInput').value.trim();
@@ -354,6 +433,7 @@
     $('trendingBtn').addEventListener('click', () => searchTracks('', true));
 
     document.querySelectorAll('[data-action="play"]').forEach(b => b.addEventListener('click', () => togglePlay(b.dataset.deck)));
+    document.querySelectorAll('[data-action="sync"]').forEach(b => b.addEventListener('click', () => syncDeck(b.dataset.deck)));
     document.querySelectorAll('[data-action="cue"]').forEach(b => b.addEventListener('click', () => toggleCue(b.dataset.deck)));
     document.querySelectorAll('[data-action="restart"]').forEach(b => b.addEventListener('click', async () => {
       await initAudio(); const a = state.decks[b.dataset.deck].audio; a.currentTime = 0;

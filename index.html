@@ -22,12 +22,30 @@
       </div>
       <div class="top-actions">
         <span id="audioStatus" class="status-dot">Audio idle</span>
+        <button id="musicBtn" class="primary">MUSIC</button>
         <button id="settingsBtn" class="ghost">API</button>
       </div>
     </header>
 
     <main>
-      <section class="library panel">
+      <section id="musicDrawer" class="library panel music-drawer" aria-hidden="true">
+        <div class="music-drawer-head">
+          <div>
+            <strong>MUSIC BROWSER</strong>
+            <span>Audius streaming • pilih lagu lalu LOAD ke Deck A/B</span>
+          </div>
+          <button id="closeMusicBtn" class="ghost" type="button">✕</button>
+        </div>
+        <div class="quick-genres" aria-label="Quick genres">
+          <button data-genre="" class="genre-chip active">TRENDING</button>
+          <button data-genre="House" class="genre-chip">HOUSE</button>
+          <button data-genre="Tech House" class="genre-chip">TECH HOUSE</button>
+          <button data-genre="Deep House" class="genre-chip">DEEP HOUSE</button>
+          <button data-genre="Techno" class="genre-chip">TECHNO</button>
+          <button data-genre="Trance" class="genre-chip">TRANCE</button>
+          <button data-genre="Drum & Bass" class="genre-chip">DNB</button>
+          <button data-genre="Dubstep" class="genre-chip">DUBSTEP</button>
+        </div>
         <div class="library-row">
           <div class="search-wrap">
             <input id="searchInput" type="search" placeholder="Cari track / artist di Audius..." autocomplete="off" />
@@ -74,6 +92,7 @@
           <div class="transport">
             <button class="transport-btn" data-action="play" data-deck="A">▶</button>
             <button class="transport-btn" data-action="restart" data-deck="A">↺</button>
+            <button class="transport-btn sync-btn" data-action="sync" data-deck="A">SYNC</button>
             <button class="transport-btn" data-action="loop" data-deck="A">LOOP</button>
           </div>
           <div class="controls-row">
@@ -130,6 +149,7 @@
           <div class="transport">
             <button class="transport-btn" data-action="play" data-deck="B">▶</button>
             <button class="transport-btn" data-action="restart" data-deck="B">↺</button>
+            <button class="transport-btn sync-btn" data-action="sync" data-deck="B">SYNC</button>
             <button class="transport-btn" data-action="loop" data-deck="B">LOOP</button>
           </div>
           <div class="controls-row">
