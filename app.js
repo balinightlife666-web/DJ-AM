@@ -3,7 +3,8 @@
 
   const $ = (id) => document.getElementById(id);
   const APP_NAME = 'ACC_DJ_PWA';
-  const PUBLIC_API = 'https://discoveryprovider.audius.co/v1';
+  const PUBLIC_API = 'https://api.audius.co/v1';
+  const LEGACY_PUBLIC_API = 'https://discoveryprovider.audius.co/v1';
 
   const state = {
     sdk: null,
@@ -233,13 +234,65 @@
         tracks = json?.data || [];
       }
 
-      tracks = tracks.filter(t => t && t.id && t.isStreamable !== false && t.is_streamable !== false);
+      const beforeFilter = tracks.length;
+      tracks = tracks.filter(isPlayableTrack);
       renderResults(tracks);
-      setMessage(tracks.length ? `${tracks.length} track ditemukan.` : 'Tidak ada track yang cocok.');
+      const hidden = Math.max(0, beforeFilter - tracks.length);
+      if (tracks.length) {
+        setMessage(`${tracks.length} track siap LOAD${hidden ? ` • ${hidden} track non-streamable disembunyikan` : ''}${state.apiKey ? ' • API key aktif' : ' • Public Mode'}.`);
+      } else {
+        setMessage('Tidak ada track streamable yang cocok. Coba genre/search lain.', true);
+      }
     } catch (err) {
       console.error(err);
       setMessage('Gagal terhubung ke Audius. Buka tombol API dan masukkan Audius API key gratis.', true);
     }
+  }
+
+  function boolish(value) {
+    if (value === true || value === false) return value;
+    if (typeof value === 'string') {
+      const v = value.trim().toLowerCase();
+      if (v === 'true' || v === '1' || v === 'yes') return true;
+      if (v === 'false' || v === '0' || v === 'no') return false;
+    }
+    return null;
+  }
+
+  function isPlayableTrack(t) {
+    if (!t || !t.id) return false;
+    const streamable = boolish(t.isStreamable ?? t.is_streamable);
+    if (streamable === false) return false;
+
+    const gated = boolish(t.isStreamGated ?? t.is_stream_gated);
+    if (gated === true) return false;
+
+    const allowed = t.allowedApiKeys ?? t.allowed_api_keys;
+    if (Array.isArray(allowed) && allowed.length) {
+      if (!state.apiKey || !allowed.map(String).includes(String(state.apiKey))) return false;
+    }
+    return true;
+  }
+
+  async function getStreamUrl(track) {
+    // Prefer the current official SDK URL builder so api_key is attached correctly.
+    if (state.sdk && state.apiKey && typeof state.sdk.tracks?.getTrackStreamUrl === 'function') {
+      return await state.sdk.tracks.getTrackStreamUrl({
+        trackId: track.id,
+        apiKey: state.apiKey
+      });
+    }
+
+    const url = new URL(`${PUBLIC_API}/tracks/${encodeURIComponent(track.id)}/stream`);
+    if (state.apiKey) url.searchParams.set('api_key', state.apiKey);
+    return url.toString();
+  }
+
+  function legacyStreamUrl(track) {
+    const url = new URL(`${LEGACY_PUBLIC_API}/tracks/${encodeURIComponent(track.id)}/stream`);
+    url.searchParams.set('app_name', APP_NAME);
+    if (state.apiKey) url.searchParams.set('api_key', state.apiKey);
+    return url.toString();
   }
 
   function normalizeTrack(t) {
@@ -254,6 +307,9 @@
       bpm: t.bpm || t.tempo || null,
       key: t.musicalKey || t.musical_key || null,
       duration: Number(t.duration) || 0,
+      isStreamable: t.isStreamable ?? t.is_streamable ?? null,
+      isStreamGated: t.isStreamGated ?? t.is_stream_gated ?? null,
+      allowedApiKeys: t.allowedApiKeys ?? t.allowed_api_keys ?? null,
     };
   }
 
@@ -296,8 +352,12 @@
     $(`pitchLabel${id}`).textContent = '0.0%';
     deck.track = track;
 
-    // Audius track stream endpoint. Browser follows the audio redirect.
-    deck.audio.src = `${PUBLIC_API}/tracks/${encodeURIComponent(track.id)}/stream?app_name=${encodeURIComponent(APP_NAME)}`;
+    // v3: build the stream URL through Audius' current SDK/API path.
+    // This fixes the v2 bug where search used the new SDK but playback still used an old public stream URL.
+    deck.streamAttempt = 0;
+    deck.primaryStreamUrl = await getStreamUrl(track);
+    deck.fallbackStreamUrl = legacyStreamUrl(track);
+    deck.audio.src = deck.primaryStreamUrl;
     deck.audio.load();
 
     $(`title${id}`).textContent = track.title;
@@ -414,6 +474,7 @@
       if (state.apiKey) localStorage.setItem('accdj_audius_api_key', state.apiKey);
       else localStorage.removeItem('accdj_audius_api_key');
       initSdk();
+      setMessage(state.apiKey ? 'Audius API key aktif. Reload MUSIC/Trending untuk hasil paling stabil.' : 'Public Mode aktif. Sebagian track dapat dibatasi provider.', !state.apiKey);
     });
     $('clearKeyBtn').addEventListener('click', () => {
       state.apiKey = '';
@@ -454,7 +515,22 @@
         btn.textContent = '▶'; btn.classList.remove('playing');
       });
       $(`audio${id}`).addEventListener('error', () => {
-        if (state.decks[id]?.track) setMessage(`Stream Deck ${id} error. Coba track lain.`, true);
+        const d = state.decks[id];
+        if (!d?.track) return;
+        const mediaCode = d.audio.error?.code || 0;
+        // One automatic fallback for Public Mode / provider edge differences.
+        if (d.streamAttempt === 0 && d.fallbackStreamUrl && d.fallbackStreamUrl !== d.audio.src) {
+          d.streamAttempt = 1;
+          d.audio.src = d.fallbackStreamUrl;
+          d.audio.load();
+          setMessage(`Deck ${id}: mencoba stream fallback…`);
+          return;
+        }
+        setMessage(`Track ini tidak bisa di-stream ke Deck ${id} (media ${mediaCode || '?'}). Track otomatis dianggap unavailable.`, true);
+      });
+      $(`audio${id}`).addEventListener('canplay', () => {
+        const d = state.decks[id];
+        if (d?.track) setMessage(`${d.track.title} → Deck ${id} siap dimainkan${state.apiKey ? ' • API key aktif' : ''}.`);
       });
     });
 

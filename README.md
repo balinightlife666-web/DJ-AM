@@ -53,3 +53,10 @@ To physically separate them, use a USB-C audio DAC plus a DJ split-cue cable / s
 - LOAD A / LOAD B buttons stay inside each result card.
 - SYNC on either deck matches that deck's tempo to the other deck when both tracks expose BPM metadata (±8% range).
 - Current SYNC is tempo/BPM sync; beat-phase sync requires beat-grid analysis and is planned for the next engine revision.
+
+
+## v3 playback reliability fix
+- Uses current `api.audius.co` playback base and Audius SDK `getTrackStreamUrl()` when an API key is configured.
+- Filters `isStreamable=false`, stream-gated tracks, and API-key restricted tracks before showing LOAD buttons.
+- One automatic legacy-provider fallback is attempted on media error.
+- Bumps service worker shell cache to v3.
