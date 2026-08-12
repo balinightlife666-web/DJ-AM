@@ -3,18 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#080b12" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="ACC DJ" />
   <meta name="description" content="ACC DJ PWA prototype — 2-deck streaming DJ mixer powered by Audius." />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>ACC DJ — PWA Prototype</title>
+  <title>ACC DJ — v5</title>
 </head>
 <body>
   <div id="app">
     <header class="topbar">
       <div class="brand">
-        <div class="brand-mark">ACC</div>
+        <div class="brand-mark brand-logo"><img src="icons/icon-192.png" alt="ACC DJ" /></div>
         <div>
           <h1>DJ</h1>
           <p>STREAM • MIX • CUE</p>
@@ -22,12 +26,15 @@
       </div>
       <div class="top-actions">
         <span id="audioStatus" class="status-dot">Audio idle</span>
-        <button id="musicBtn" class="primary">MUSIC</button>
-        <button id="settingsBtn" class="ghost">API</button>
+        <button id="djModeBtn" class="ghost focus-btn">DJ MODE</button>
+        <button id="installBtn" class="ghost install-btn" hidden>INSTALL</button>
+        <button id="musicBtn" class="primary music-toggle">♫ MUSIC</button>
+        <button id="settingsBtn" class="ghost api-btn">API</button>
       </div>
     </header>
 
     <main>
+      <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
       <section id="musicDrawer" class="library panel music-drawer" aria-hidden="true">
         <div class="music-drawer-head">
           <div>
@@ -45,6 +52,9 @@
           <button data-genre="Trance" class="genre-chip">TRANCE</button>
           <button data-genre="Drum & Bass" class="genre-chip">DNB</button>
           <button data-genre="Dubstep" class="genre-chip">DUBSTEP</button>
+          <button data-genre="Electronic" class="genre-chip">ELECTRONIC</button>
+          <button data-genre="Future House" class="genre-chip">FUTURE</button>
+          <button data-genre="Progressive House" class="genre-chip">PROGRESSIVE</button>
         </div>
         <div class="library-row">
           <div class="search-wrap">
@@ -70,6 +80,7 @@
         </div>
         <div id="libraryMessage" class="library-message">Masukkan kata kunci atau buka Trending.</div>
         <div id="results" class="results"></div>
+        <div class="browser-footer"><button id="moreBtn" class="ghost" type="button" hidden>MORE TRACKS</button></div>
       </section>
 
       <section class="decks-grid">
@@ -94,6 +105,11 @@
             <button class="transport-btn" data-action="restart" data-deck="A">↺</button>
             <button class="transport-btn sync-btn" data-action="sync" data-deck="A">SYNC</button>
             <button class="transport-btn" data-action="loop" data-deck="A">LOOP</button>
+          </div>
+          <div class="nudge-row">
+            <button class="nudge-btn" data-action="nudge" data-dir="-1" data-deck="A">◀ NUDGE</button>
+            <span id="syncStateA" class="sync-state">FREE</span>
+            <button class="nudge-btn" data-action="nudge" data-dir="1" data-deck="A">NUDGE ▶</button>
           </div>
           <div class="controls-row">
             <label>LOW<input id="lowA" type="range" min="-18" max="12" value="0" step="1" /></label>
@@ -151,6 +167,11 @@
             <button class="transport-btn" data-action="restart" data-deck="B">↺</button>
             <button class="transport-btn sync-btn" data-action="sync" data-deck="B">SYNC</button>
             <button class="transport-btn" data-action="loop" data-deck="B">LOOP</button>
+          </div>
+          <div class="nudge-row">
+            <button class="nudge-btn" data-action="nudge" data-dir="-1" data-deck="B">◀ NUDGE</button>
+            <span id="syncStateB" class="sync-state">FREE</span>
+            <button class="nudge-btn" data-action="nudge" data-dir="1" data-deck="B">NUDGE ▶</button>
           </div>
           <div class="controls-row">
             <label>LOW<input id="lowB" type="range" min="-18" max="12" value="0" step="1" /></label>

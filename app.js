@@ -20,6 +20,13 @@
     normalOut: null,
     audioReady: false,
     musicLoaded: false,
+    lastQuery: '',
+    lastTrending: true,
+    searchOffset: 0,
+    pageSize: 28,
+    renderedTrackIds: new Set(),
+    deferredInstallPrompt: null,
+    focusMode: false,
   };
 
   function formatTime(seconds) {
@@ -36,8 +43,10 @@
 
   function openMusic() {
     const drawer = $('musicDrawer');
+    const backdrop = $('drawerBackdrop');
     drawer.classList.add('open');
     drawer.setAttribute('aria-hidden', 'false');
+    if (backdrop) backdrop.hidden = false;
     if (!state.musicLoaded) {
       state.musicLoaded = true;
       searchTracks('', true);
@@ -46,8 +55,10 @@
 
   function closeMusic() {
     const drawer = $('musicDrawer');
+    const backdrop = $('drawerBackdrop');
     drawer.classList.remove('open');
     drawer.setAttribute('aria-hidden', 'true');
+    if (backdrop) backdrop.hidden = true;
   }
 
   function effectiveBpm(id) {
@@ -69,32 +80,133 @@
     $(`bpm${id}`).textContent = changed ? `BPM ${eff.toFixed(1)}*` : `BPM ${base}`;
   }
 
+  function normalizedPhaseError(targetId, masterId) {
+    const target = state.decks[targetId];
+    const master = state.decks[masterId];
+    const targetBpm = Number(target?.track?.bpm);
+    const masterBpm = Number(master?.track?.bpm);
+    if (!targetBpm || !masterBpm) return null;
+    const targetBeat = 60 / targetBpm;
+    const masterBeat = 60 / masterBpm;
+    const targetPhase = ((target.audio.currentTime / targetBeat) % 1 + 1) % 1;
+    const masterPhase = ((master.audio.currentTime / masterBeat) % 1 + 1) % 1;
+    let error = targetPhase - masterPhase;
+    if (error > .5) error -= 1;
+    if (error < -.5) error += 1;
+    return error;
+  }
+
+  function setSyncUi(id, active, masterId = null) {
+    const btn = document.querySelector(`[data-action="sync"][data-deck="${id}"]`);
+    const label = $(`syncState${id}`);
+    btn?.classList.toggle('synced', active);
+    if (btn) btn.textContent = active ? 'SYNC ✓' : 'SYNC';
+    if (label) {
+      label.textContent = active ? `LOCK ${masterId}` : 'FREE';
+      label.classList.toggle('locked', active);
+    }
+  }
+
+  function disableSync(id, quiet = false) {
+    const d = state.decks[id];
+    if (!d) return;
+    d.syncActive = false;
+    d.syncMasterId = null;
+    d.syncNominalRate = 1;
+    d.lastSyncAt = 0;
+    setSyncUi(id, false);
+    if (!quiet && d.track) setMessage(`Deck ${id} SYNC dilepas.`);
+  }
+
+  function alignPhaseNow(targetId) {
+    const target = state.decks[targetId];
+    const masterId = target?.syncMasterId;
+    const master = state.decks[masterId];
+    if (!target?.syncActive || !master?.track || !target.track) return;
+    const error = normalizedPhaseError(targetId, masterId);
+    const baseBpm = Number(target.track.bpm);
+    if (error === null || !baseBpm) return;
+    const beatSeconds = 60 / baseBpm;
+    const next = Math.max(0, target.audio.currentTime - error * beatSeconds);
+    if (Number.isFinite(next)) target.audio.currentTime = next;
+  }
+
+  function maintainSync(targetId) {
+    const target = state.decks[targetId];
+    if (!target?.syncActive || !target.track) return;
+    const masterId = target.syncMasterId;
+    const master = state.decks[masterId];
+    if (!master?.track) return disableSync(targetId, true);
+    const now = performance.now();
+    if (now - (target.lastSyncAt || 0) < 120) return;
+    target.lastSyncAt = now;
+
+    const targetBase = Number(target.track.bpm);
+    const masterNow = effectiveBpm(masterId);
+    if (!targetBase || !masterNow) return;
+    const nominal = masterNow / targetBase;
+    target.syncNominalRate = nominal;
+
+    if (target.audio.paused || master.audio.paused) {
+      target.audio.playbackRate = nominal;
+      return;
+    }
+
+    const error = normalizedPhaseError(targetId, masterId);
+    if (error === null) return;
+    // Tiny PLL-style tempo correction: follows phase continuously without large jumps.
+    const correction = Math.max(-0.009, Math.min(0.009, -error * 0.035));
+    target.audio.playbackRate = nominal * (1 + correction);
+    updateBpmDisplay(targetId);
+  }
+
   async function syncDeck(targetId) {
     await initAudio();
     const masterId = targetId === 'A' ? 'B' : 'A';
     const target = state.decks[targetId];
     const master = state.decks[masterId];
     if (!target?.track || !master?.track) {
-      return setMessage(`Load lagu ke Deck A dan B dulu untuk SYNC.`, true);
+      return setMessage('Load lagu ke Deck A dan B dulu untuk SYNC.', true);
     }
+    if (target.syncActive) {
+      disableSync(targetId);
+      return;
+    }
+    // Only one deck follows at a time to avoid circular sync.
+    if (master.syncActive) disableSync(masterId, true);
+
     const targetBase = Number(target.track.bpm);
     const masterNow = effectiveBpm(masterId);
     if (!targetBase || !masterNow) {
-      return setMessage(`BPM metadata salah satu track tidak tersedia. Pilih track lain untuk SYNC.`, true);
+      return setMessage('BPM metadata salah satu track tidak tersedia. Pilih track lain untuk SYNC.', true);
     }
     const rate = masterNow / targetBase;
     const percent = (rate - 1) * 100;
     if (Math.abs(percent) > 8) {
-      return setMessage(`Beda tempo terlalu jauh (${percent > 0 ? '+' : ''}${percent.toFixed(1)}%). SYNC v2 dibatasi ±8%.`, true);
+      return setMessage(`Beda tempo terlalu jauh (${percent > 0 ? '+' : ''}${percent.toFixed(1)}%). SYNC dibatasi ±8%.`, true);
     }
+    target.syncActive = true;
+    target.syncMasterId = masterId;
+    target.syncNominalRate = rate;
+    target.lastSyncAt = 0;
     target.audio.playbackRate = rate;
     $(`pitch${targetId}`).value = percent.toFixed(1);
     $(`pitchLabel${targetId}`).textContent = `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%`;
+    alignPhaseNow(targetId);
     updateBpmDisplay(targetId);
-    const btn = document.querySelector(`[data-action="sync"][data-deck="${targetId}"]`);
-    btn.classList.add('synced');
-    setMessage(`Deck ${targetId} tempo sync → Deck ${masterId} (${masterNow.toFixed(1)} BPM).`);
+    setSyncUi(targetId, true, masterId);
+    setMessage(`Deck ${targetId} SMART SYNC → Deck ${masterId}: BPM + continuous phase lock aktif.`);
   }
+
+  function nudgeDeck(id, direction) {
+    const d = state.decks[id];
+    const bpm = Number(d?.track?.bpm);
+    if (!d?.track || !bpm) return setMessage(`Deck ${id} belum punya BPM untuk NUDGE.`, true);
+    const step = (60 / bpm) * 0.08 * Number(direction);
+    d.audio.currentTime = Math.max(0, d.audio.currentTime + step);
+    setMessage(`Deck ${id} nudge ${direction < 0 ? '◀' : '▶'} ${(Math.abs(step) * 1000).toFixed(0)} ms.`);
+  }
+
 
   function initSdk() {
     if (!state.apiKey || typeof window.audiusSdk !== 'function') {
@@ -167,6 +279,10 @@
       cue: false,
       loop: false,
       track: null,
+      syncActive: false,
+      syncMasterId: null,
+      syncNominalRate: 1,
+      lastSyncAt: 0,
     };
   }
 
@@ -206,20 +322,27 @@
     }
   }
 
-  async function searchTracks(query, trending = false) {
+  async function searchTracks(query, trending = false, append = false) {
     const genre = $('genreSelect').value;
-    setMessage('Mengambil track dari Audius…');
-    $('results').innerHTML = '';
+    const offset = append ? state.searchOffset + state.pageSize : 0;
+    if (!append) {
+      state.lastQuery = query;
+      state.lastTrending = trending;
+      state.searchOffset = 0;
+      state.renderedTrackIds = new Set();
+      $('results').innerHTML = '';
+    }
+    setMessage(append ? 'Mengambil track berikutnya…' : 'Mengambil track dari Audius…');
 
     try {
       let tracks = [];
       if (state.sdk) {
         const response = trending
-          ? await state.sdk.tracks.getTrendingTracks({ limit: 16, ...(genre ? { genre } : {}) })
-          : await state.sdk.tracks.searchTracks({ query, limit: 16, sortMethod: 'relevant', ...(genre ? { genre: [genre] } : {}) });
+          ? await state.sdk.tracks.getTrendingTracks({ limit: state.pageSize, offset, ...(genre ? { genre } : {}) })
+          : await state.sdk.tracks.searchTracks({ query, limit: state.pageSize, offset, sortMethod: 'relevant', ...(genre ? { genre: [genre] } : {}) });
         tracks = response?.data || [];
       } else {
-        const params = new URLSearchParams({ app_name: APP_NAME, limit: '16' });
+        const params = new URLSearchParams({ app_name: APP_NAME, limit: String(state.pageSize), offset: String(offset) });
         if (genre) params.set('genre', genre);
         let url;
         if (trending) {
@@ -234,20 +357,25 @@
         tracks = json?.data || [];
       }
 
+      state.searchOffset = offset;
+      const rawCount = tracks.length;
       const beforeFilter = tracks.length;
       tracks = tracks.filter(isPlayableTrack);
-      renderResults(tracks);
+      renderResults(tracks, append);
       const hidden = Math.max(0, beforeFilter - tracks.length);
-      if (tracks.length) {
-        setMessage(`${tracks.length} track siap LOAD${hidden ? ` • ${hidden} track non-streamable disembunyikan` : ''}${state.apiKey ? ' • API key aktif' : ' • Public Mode'}.`);
+      const totalShown = state.renderedTrackIds.size;
+      $('moreBtn').hidden = rawCount < state.pageSize;
+      if (tracks.length || append) {
+        setMessage(`${totalShown} track tersedia${hidden ? ` • ${hidden} non-streamable dilewati` : ''}${state.apiKey ? ' • API key aktif' : ' • Public Mode'}.`);
       } else {
         setMessage('Tidak ada track streamable yang cocok. Coba genre/search lain.', true);
       }
     } catch (err) {
       console.error(err);
-      setMessage('Gagal terhubung ke Audius. Buka tombol API dan masukkan Audius API key gratis.', true);
+      setMessage('Gagal terhubung ke Audius. Buka API dan periksa Audius API key.', true);
     }
   }
+
 
   function boolish(value) {
     if (value === true || value === false) return value;
@@ -313,10 +441,12 @@
     };
   }
 
-  function renderResults(tracks) {
+  function renderResults(tracks, append = false) {
     const root = $('results');
-    root.innerHTML = '';
+    if (!append) root.innerHTML = '';
     tracks.map(normalizeTrack).forEach(track => {
+      if (state.renderedTrackIds.has(track.id)) return;
+      state.renderedTrackIds.add(track.id);
       const card = document.createElement('div');
       card.className = 'result-card';
       card.innerHTML = `
@@ -347,6 +477,7 @@
     const deck = state.decks[id];
     deck.audio.pause();
     deck.audio.currentTime = 0;
+    disableSync(id, true);
     deck.audio.playbackRate = 1;
     $(`pitch${id}`).value = 0;
     $(`pitchLabel${id}`).textContent = '0.0%';
@@ -368,8 +499,9 @@
     $(`duration${id}`).textContent = formatTime(track.duration);
     $(`seek${id}`).value = 0;
     $(`time${id}`).textContent = '00:00';
-    document.querySelector(`[data-action="sync"][data-deck="${id}"]`)?.classList.remove('synced');
+    setSyncUi(id, false);
     setMessage(`${track.title} → Deck ${id} loaded.`);
+    closeMusic();
   }
 
   async function togglePlay(id) {
@@ -379,7 +511,12 @@
     const btn = document.querySelector(`[data-action="play"][data-deck="${id}"]`);
     if (deck.audio.paused) {
       try {
+        if (deck.syncActive) {
+          const master = state.decks[deck.syncMasterId];
+          if (master?.track && !master.audio.paused) alignPhaseNow(id);
+        }
         await deck.audio.play();
+        if (deck.syncActive) alignPhaseNow(id);
         btn.textContent = 'Ⅱ';
         btn.classList.add('playing');
       } catch (err) {
@@ -411,6 +548,7 @@
   function setPitch(id, percent) {
     const deck = state.decks[id];
     if (!deck) return;
+    if (deck.syncActive) disableSync(id, true);
     const p = Number(percent);
     deck.audio.playbackRate = 1 + p / 100;
     $(`pitchLabel${id}`).textContent = `${p >= 0 ? '+' : ''}${p.toFixed(1)}%`;
@@ -422,6 +560,7 @@
     if (!state.audioReady) return;
     ['A', 'B'].forEach(id => {
       const deck = state.decks[id];
+      maintainSync(id);
       const analyser = deck.analyser;
       const data = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(data);
@@ -437,8 +576,8 @@
         const v = data[i*step] / 255;
         const bh = Math.max(2, v * h * .82);
         const grad = c.createLinearGradient(0, h-bh, 0, h);
-        grad.addColorStop(0, id === 'A' ? '#22d3ee' : '#a78bfa');
-        grad.addColorStop(1, '#334155');
+        grad.addColorStop(0, id === 'A' ? '#ffffff' : '#bdbdbd');
+        grad.addColorStop(1, '#3f3f46');
         c.fillStyle = grad;
         c.fillRect(i*barW+1, h-bh, Math.max(1,barW-2), bh);
       }
@@ -455,12 +594,60 @@
     requestAnimationFrame(drawLoop);
   }
 
+  function isStandalone() {
+    return window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  async function toggleDjMode() {
+    const btn = $('djModeBtn');
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen?.();
+        try { await screen.orientation?.lock?.('landscape'); } catch (_) {}
+        document.body.classList.add('focus-mode');
+        state.focusMode = true;
+        btn.classList.add('active');
+        btn.textContent = 'EXIT';
+      } else {
+        await document.exitFullscreen?.();
+        document.body.classList.remove('focus-mode');
+        state.focusMode = false;
+        btn.classList.remove('active');
+        btn.textContent = 'DJ MODE';
+      }
+    } catch (err) {
+      document.body.classList.toggle('focus-mode');
+      state.focusMode = document.body.classList.contains('focus-mode');
+      btn.classList.toggle('active', state.focusMode);
+      btn.textContent = state.focusMode ? 'EXIT' : 'DJ MODE';
+    }
+  }
+
+  async function installPwa() {
+    const prompt = state.deferredInstallPrompt;
+    if (prompt) {
+      prompt.prompt();
+      try { await prompt.userChoice; } catch (_) {}
+      state.deferredInstallPrompt = null;
+      $('installBtn').hidden = true;
+      return;
+    }
+    alert('Untuk install ACC DJ: buka menu Chrome (⋮) lalu pilih “Install app” atau “Add to Home screen”. Setelah terpasang, buka dari ikon ACC DJ agar browser bar hilang.');
+  }
+
   function bindUi() {
     $('apiKeyInput').value = state.apiKey;
     initSdk();
+    $('djModeBtn').addEventListener('click', toggleDjMode);
+    $('installBtn').addEventListener('click', installPwa);
+    if (!isStandalone()) $('installBtn').hidden = false;
 
-    $('musicBtn').addEventListener('click', openMusic);
+    $('musicBtn').addEventListener('click', () => {
+      const drawer = $('musicDrawer');
+      if (drawer.classList.contains('open')) closeMusic(); else openMusic();
+    });
     $('closeMusicBtn').addEventListener('click', closeMusic);
+    $('drawerBackdrop')?.addEventListener('click', closeMusic);
     document.querySelectorAll('[data-genre]').forEach(btn => btn.addEventListener('click', () => {
       document.querySelectorAll('[data-genre]').forEach(x => x.classList.remove('active'));
       btn.classList.add('active');
@@ -492,9 +679,11 @@
       if (e.key === 'Enter') $('searchBtn').click();
     });
     $('trendingBtn').addEventListener('click', () => searchTracks('', true));
+    $('moreBtn').addEventListener('click', () => searchTracks(state.lastQuery, state.lastTrending, true));
 
     document.querySelectorAll('[data-action="play"]').forEach(b => b.addEventListener('click', () => togglePlay(b.dataset.deck)));
     document.querySelectorAll('[data-action="sync"]').forEach(b => b.addEventListener('click', () => syncDeck(b.dataset.deck)));
+    document.querySelectorAll('[data-action="nudge"]').forEach(b => b.addEventListener('click', () => nudgeDeck(b.dataset.deck, Number(b.dataset.dir))));
     document.querySelectorAll('[data-action="cue"]').forEach(b => b.addEventListener('click', () => toggleCue(b.dataset.deck)));
     document.querySelectorAll('[data-action="restart"]').forEach(b => b.addEventListener('click', async () => {
       await initAudio(); const a = state.decks[b.dataset.deck].audio; a.currentTime = 0;
@@ -540,11 +729,32 @@
     });
     $('splitCueBtn').addEventListener('click', async () => { await initAudio(); setSplitCue(!state.splitCue); });
 
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && state.focusMode) {
+        state.focusMode = false;
+        document.body.classList.remove('focus-mode');
+        $('djModeBtn').classList.remove('active');
+        $('djModeBtn').textContent = 'DJ MODE';
+      }
+    });
+
     // First gesture prepares audio on mobile.
     document.addEventListener('pointerdown', () => {
       if (state.ctx?.state === 'suspended') state.ctx.resume().catch(()=>{});
     }, { passive:true });
   }
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    state.deferredInstallPrompt = event;
+    const btn = $('installBtn');
+    if (btn && !isStandalone()) btn.hidden = false;
+  });
+  window.addEventListener('appinstalled', () => {
+    state.deferredInstallPrompt = null;
+    const btn = $('installBtn');
+    if (btn) btn.hidden = true;
+  });
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
