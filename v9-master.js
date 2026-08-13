@@ -8,8 +8,8 @@ function setMasterDeck(id, quiet=false) {
   const other = id === 'A' ? 'B' : 'A';
   if (state.decks[other]?.syncActive) {
     state.decks[other].syncMasterId = id;
-    beginBeatChase(other);
+    startBeatAlignment(other);
   }
-  if (state.decks[id]?.syncActive) disableSync(id, true);
+  if (state.decks[id]?.syncActive) releaseBeatLink(id, true);
   if (!quiet) setMessage(`Deck ${id} = MASTER CLOCK.`);
 }
