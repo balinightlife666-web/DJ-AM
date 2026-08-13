@@ -1,0 +1,97 @@
+2;
+    while (bpm > 180) bpm /= 2;
+    return bpm;
+  }
+
+  function estimateTempoFromOnsets(d) {
+    const times = d.onsetTimes || [];
+    if (times.length < 6) return;
+    const hist = new Map();
+    const n = times.length;
+    const from = Math.max(0, n - 28);
+    for (let i = from + 1; i < n; i++) {
+      for (let j = Math.max(from, i - 8); j < i; j++) {
+        const dt = times[i] - times[j];
+        if (dt < .24 || dt > 2.4) continue;
+        const bpm = normalizeTempo(60 / dt);
+        if (!bpm) continue;
+        const key = Math.round(bpm * 2) / 2; // 0.5 BPM bins
+        const recency = .55 + .45 * ((i - from) / Math.max(1, n - from - 1));
+        const distanceWeight = 1 / Math.sqrt(i - j);
+        hist.set(key, (hist.get(key) || 0) + recency * distanceWeight);
+      }
+    }
+    if (!hist.size) return;
+    const ranked = [...hist.entries()].sort((a,b)=>b[1]-a[1]);
+    const [peak, peakScore] = ranked[0];
+    let weighted = 0, weight = 0;
+    for (const [bpm, score] of ranked) {
+      if (Math.abs(bpm - peak) <= 1.5) { weighted += bpm * score; weight += score; }
+    }
+    let candidate = weight ? weighted / weight : peak;
+
+    // Resolve half/double ambiguity using existing detector history first, metadata only as weak hint.
+    const prev = Number(d.detectedBpm);
+    if (prev >= 70 && prev <= 180) {
+      const opts = [candidate, normalizeTempo(candidate*2), normalizeTempo(candidate/2)].filter(Boolean);
+      candidate = opts.sort((a,b)=>Math.abs(a-prev)-Math.abs(b-prev))[0];
+    } else {
+      const meta = normalizeTempo(Number(d.track?.bpm));
+      if (meta) {
+        const opts = [candidate, normalizeTempo(candidate*2), normalizeTempo(candidate/2)].filter(Boolean);
+        const close = opts.sort((a,b)=>Math.abs(a-meta)-Math.abs(b-meta))[0];
+        if (Math.abs(close-meta) < Math.abs(candidate-meta) * .65) candidate = close;
+      }
+    }
+
+    const second = ranked[1]?.[1] || 0;
+    const dominance = peakScore / Math.max(.001, second || peakScore*.55);
+    const confidenceGain = dominance > 1.18 ? 1 : .35;
+    if (!Number.isFinite(d.detectedBpm)) d.detectedBpm = candidate;
+    else d.detectedBpm = d.detectedBpm * .84 + candidate * .16;
+    d.tempoConfidence = Math.min(10, (d.tempoConfidence || 0) + confidenceGain);
+  }
+
+  function observeBeat(id, spectrum) {
+    const d = state.decks[id];
+    if (!d?.track || d.audio.paused) return;
+
+    // Real low-frequency spectral flux (FFT 2048 => useful bass resolution on mobile).
+    const ctx = state.ctx;
+    const binHz = ctx.sampleRate / d.analyser.fftSize;
+    const lo = Math.max(1, Math.floor(42 / binHz));
+    const hi = Math.min(spectrum.length - 1, Math.ceil(230 / binHz));
+    if (!d.prevSpectrum || d.prevSpectrum.length !== spectrum.length) d.prevSpectrum = new Uint8Array(spectrum.length);
+    let flux = 0, energy = 0, bins = 0;
+    for (let i=lo; i<=hi; i++) {
+      const cur = spectrum[i];
+      const prev = d.prevSpectrum[i] || 0;
+      flux += Math.max(0, cur - prev);
+      energy += cur;
+      d.prevSpectrum[i] = cur;
+      bins++;
+    }
+    flux /= Math.max(1,bins);
+    energy /= Math.max(1,bins);
+    d.fluxAvg = d.fluxAvg ? d.fluxAvg * .965 + flux * .035 : flux;
+    d.energyAvg = d.energyAvg ? d.energyAvg * .97 + energy * .03 : energy;
+
+    const nowMedia = d.audio.currentTime;
+    const currentBeat = beatLengthMedia(id) || .5;
+    const refractory = Math.max(.20, currentBeat * .34);
+    const threshold = Math.max(3.2, (d.fluxAvg || 0) * 1.85);
+    const strongEnough = energy > Math.max(22, (d.energyAvg || 0) * .78);
+    if (flux < threshold || !strongEnough || nowMedia - (d.lastOnsetMedia ?? -99) < refractory) return;
+
+    d.lastOnsetMedia = nowMedia;
+    d.onsetTimes = d.onsetTimes || [];
+    d.onsetTimes.push(nowMedia);
+    if (d.onsetTimes.length > 40) d.onsetTimes.shift();
+    estimateTempoFromOnsets(d);
+
+    const beat = beatLengthMedia(id);
+    if (!beat) return;
+
+    if (!Number.isFinite(d.beatAnchor)) {
+      d.beatAnchor = nowMedia;
+      d.beatConfi
