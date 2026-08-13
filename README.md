@@ -23,3 +23,11 @@ Core rebuild, bukan patch sync lama.
 - Audio streams tidak dicache sebagai koleksi lokal.
 
 Catatan: live transient analysis jauh lebih baik daripada BPM-only, tetapi streaming browser tetap bukan Rekordbox offline analysis. Track dengan kick/transient lemah dapat membutuhkan beberapa detik hingga GRID stabil.
+
+## v8 PWA install fix
+- Root-level launcher icon URLs.
+- Opaque PNG 192/512 icons.
+- Separate Android maskable icons with safe area.
+- Removed SVG from manifest icon candidates.
+- Manifest/icon cache bust v8.
+- Service worker immediately activates and uses network-first/no-store for manifest/icons.
