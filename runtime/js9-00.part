@@ -1,0 +1,130 @@
+(() => {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const APP_NAME = 'ACC_DJ_PWA';
+  const PUBLIC_API = 'https://api.audius.co/v1';
+  const LEGACY_PUBLIC_API = 'https://discoveryprovider.audius.co/v1';
+
+  const state = {
+    sdk: null,
+    apiKey: localStorage.getItem('accdj_audius_api_key') || '',
+    ctx: null,
+    splitCue: false,
+    crossfader: 0,
+    decks: {},
+    merger: null,
+    masterBus: null,
+    cueBus: null,
+    masterGain: null,
+    normalOut: null,
+    audioReady: false,
+    musicLoaded: false,
+    lastQuery: '',
+    lastTrending: true,
+    searchOffset: 0,
+    pageSize: 28,
+    renderedTrackIds: new Set(),
+    deferredInstallPrompt: null,
+    focusMode: false,
+    masterDeck: 'A',
+  };
+
+  function formatTime(seconds) {
+    if (!Number.isFinite(seconds)) return '00:00';
+    const s = Math.max(0, Math.floor(seconds));
+    return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  }
+
+  function setMessage(text, error = false) {
+    const el = $('libraryMessage');
+    el.textContent = text;
+    el.style.color = error ? '#fb7185' : '';
+  }
+
+  function openMusic() {
+    const drawer = $('musicDrawer');
+    const backdrop = $('drawerBackdrop');
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    if (backdrop) backdrop.hidden = false;
+    if (!state.musicLoaded) {
+      state.musicLoaded = true;
+      searchTracks('', true);
+    }
+  }
+
+  function closeMusic() {
+    const drawer = $('musicDrawer');
+    const backdrop = $('drawerBackdrop');
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    if (backdrop) backdrop.hidden = true;
+  }
+
+  function sourceBpm(id) {
+    const d = state.decks[id];
+    const detected = Number(d?.detectedBpm);
+    if (detected >= 70 && detected <= 180 && (d?.tempoConfidence || 0) >= 3) return detected;
+    const meta = Number(d?.track?.bpm);
+    if (!meta || !Number.isFinite(meta)) return null;
+    // Normalize common half/double metadata into a DJ-useful range.
+    let bpm = meta;
+    while (bpm < 70) bpm *= 2;
+    while (bpm > 180) bpm /= 2;
+    return bpm;
+  }
+
+  function effectiveBpm(id) {
+    const d = state.decks[id];
+    const bpm = sourceBpm(id);
+    if (!bpm || !Number.isFinite(bpm)) return null;
+    return bpm * (Number(d.audio.playbackRate) || 1);
+  }
+
+  function updateBpmDisplay(id) {
+    const d = state.decks[id];
+    const base = sourceBpm(id);
+    if (!base || !Number.isFinite(base)) {
+      $(`bpm${id}`).textContent = 'BPM —';
+      return;
+    }
+    const eff = effectiveBpm(id);
+    const changed = Math.abs((d.audio.playbackRate || 1) - 1) > 0.0005;
+    const auto = (d?.tempoConfidence || 0) >= 3 ? ' AUTO' : '';
+    $(`bpm${id}`).textContent = changed ? `BPM ${eff.toFixed(1)}*${auto}` : `BPM ${base.toFixed(1)}${auto}`;
+  }
+
+  function beatLengthMedia(id) {
+    const bpm = sourceBpm(id);
+    return bpm > 0 ? 60 / bpm : null;
+  }
+
+  function phaseFromAnchor(id) {
+    const d = state.decks[id];
+    const beat = beatLengthMedia(id);
+    if (!d || !beat) return null;
+    const anchor = Number.isFinite(d.beatAnchor) ? d.beatAnchor : 0;
+    return ((((d.audio.currentTime - anchor) / beat) % 1) + 1) % 1;
+  }
+
+  function normalizedPhaseError(targetId, masterId) {
+    const a = phaseFromAnchor(targetId), b = phaseFromAnchor(masterId);
+    if (a === null || b === null) return null;
+    let error = a - b;
+    if (error > .5) error -= 1;
+    if (error < -.5) error += 1;
+    return error;
+  }
+
+  function updateGridUi(id) {
+    const d = state.decks[id], el = $(`grid${id}`);
+    if (!el) return;
+    const ready = (d?.beatConfidence || 0) >= 4 && (d?.tempoConfidence || 0) >= 3;
+    el.textContent = ready ? 'GRID ✓' : (d?.track ? ((d?.tempoConfidence||0)>=2 ? 'BPM…' : 'ANALYZE') : 'GRID —');
+    el.classList.toggle('grid-ready', ready);
+  }
+
+  function normalizeTempo(bpm) {
+    if (!Number.isFinite(bpm) || bpm <= 0) return null;
+    while (bpm < 70) bpm *= 
