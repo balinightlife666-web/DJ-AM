@@ -1,0 +1,206 @@
+--- app-v8.js
++++ app-v9.js
+@@ -62,27 +62,41 @@
+     if (backdrop) backdrop.hidden = true;
+   }
+ 
++  function sourceBpm(id) {
++    const d = state.decks[id];
++    const detected = Number(d?.detectedBpm);
++    if (detected >= 70 && detected <= 180 && (d?.tempoConfidence || 0) >= 3) return detected;
++    const meta = Number(d?.track?.bpm);
++    if (!meta || !Number.isFinite(meta)) return null;
++    // Normalize common half/double metadata into a DJ-useful range.
++    let bpm = meta;
++    while (bpm < 70) bpm *= 2;
++    while (bpm > 180) bpm /= 2;
++    return bpm;
++  }
++
+   function effectiveBpm(id) {
+     const d = state.decks[id];
+-    const bpm = Number(d?.track?.bpm);
++    const bpm = sourceBpm(id);
+     if (!bpm || !Number.isFinite(bpm)) return null;
+     return bpm * (Number(d.audio.playbackRate) || 1);
+   }
+ 
+   function updateBpmDisplay(id) {
+     const d = state.decks[id];
+-    const base = Number(d?.track?.bpm);
++    const base = sourceBpm(id);
+     if (!base || !Number.isFinite(base)) {
+       $(`bpm${id}`).textContent = 'BPM —';
+       return;
+     }
+     const eff = effectiveBpm(id);
+     const changed = Math.abs((d.audio.playbackRate || 1) - 1) > 0.0005;
+-    $(`bpm${id}`).textContent = changed ? `BPM ${eff.toFixed(1)}*` : `BPM ${base}`;
++    const auto = (d?.tempoConfidence || 0) >= 3 ? ' AUTO' : '';
++    $(`bpm${id}`).textContent = changed ? `BPM ${eff.toFixed(1)}*${auto}` : `BPM ${base.toFixed(1)}${auto}`;
+   }
+ 
+   function beatLengthMedia(id) {
+-    const bpm = Number(state.decks[id]?.track?.bpm);
++    const bpm = sourceBpm(id);
+     return bpm > 0 ? 60 / bpm : null;
+   }
+ 
+@@ -106,28 +120,106 @@
+   function updateGridUi(id) {
+     const d = state.decks[id], el = $(`grid${id}`);
+     if (!el) return;
+-    const ready = (d?.beatConfidence || 0) >= 3;
+-    el.textContent = ready ? 'GRID ✓' : (d?.track ? 'ANALYZE' : 'GRID —');
++    const ready = (d?.beatConfidence || 0) >= 4 && (d?.tempoConfidence || 0) >= 3;
++    el.textContent = ready ? 'GRID ✓' : (d?.track ? ((d?.tempoConfidence||0)>=2 ? 'BPM…' : 'ANALYZE') : 'GRID —');
+     el.classList.toggle('grid-ready', ready);
+   }
+ 
++  function normalizeTempo(bpm) {
++    if (!Number.isFinite(bpm) || bpm <= 0) return null;
++    while (bpm < 70) bpm *= 2;
++    while (bpm > 180) bpm /= 2;
++    return bpm;
++  }
++
++  function estimateTempoFromOnsets(d) {
++    const times = d.onsetTimes || [];
++    if (times.length < 6) return;
++    const hist = new Map();
++    const n = times.length;
++    const from = Math.max(0, n - 28);
++    for (let i = from + 1; i < n; i++) {
++      for (let j = Math.max(from, i - 8); j < i; j++) {
++        const dt = times[i] - times[j];
++        if (dt < .24 || dt > 2.4) continue;
++        const bpm = normalizeTempo(60 / dt);
++        if (!bpm) continue;
++        const key = Math.round(bpm * 2) / 2;
++        const recency = .55 + .45 * ((i - from) / Math.max(1, n - from - 1));
++        const distanceWeight = 1 / Math.sqrt(i - j);
++        hist.set(key, (hist.get(key) || 0) + recency * distanceWeight);
++      }
++    }
++    if (!hist.size) return;
++    const ranked = [...hist.entries()].sort((a,b)=>b[1]-a[1]);
++    const [peak, peakScore] = ranked[0];
++    let weighted = 0, weight = 0;
++    for (const [bpm, score] of ranked) {
++      if (Math.abs(bpm - peak) <= 1.5) { weighted += bpm * score; weight += score; }
++    }
++    let candidate = weight ? weighted / weight : peak;
++    const prev = Number(d.detectedBpm);
++    if (prev >= 70 && prev <= 180) {
++      const opts = [candidate, normalizeTempo(candidate*2), normalizeTempo(candidate/2)].filter(Boolean);
++      candidate = opts.sort((a,b)=>Math.abs(a-prev)-Math.abs(b-prev))[0];
++    } else {
++      const meta = normalizeTempo(Number(d.track?.bpm));
++      if (meta) {
++        const opts = [candidate, normalizeTempo(candidate*2), normalizeTempo(candidate/2)].filter(Boolean);
++        const close = opts.sort((a,b)=>Math.abs(a-meta)-Math.abs(b-meta))[0];
++        if (Math.abs(close-meta) < Math.abs(candidate-meta) * .65) candidate = close;
++      }
++    }
++    const second = ranked[1]?.[1] || 0;
++    const dominance = peakScore / Math.max(.001, second || peakScore*.55);
++    const confidenceGain = dominance > 1.18 ? 1 : .35;
++    if (!Number.isFinite(d.detectedBpm)) d.detectedBpm = candidate;
++    else d.detectedBpm = d.detectedBpm * .84 + candidate * .16;
++    d.tempoConfidence = Math.min(10, (d.tempoConfidence || 0) + confidenceGain);
++  }
++
+   function observeBeat(id, spectrum) {
+     const d = state.decks[id];
+     if (!d?.track || d.audio.paused) return;
+-    const bpm = Number(d.track.bpm), beat = bpm > 0 ? 60 / bpm : 0;
+-    if (!beat) return;
+-    const bins = Math.min(16, spectrum.length);
+-    let low = 0;
+-    for (let i=1;i<bins;i++) low += spectrum[i];
+-    low /= Math.max(1,bins-1);
+-    const flux = Math.max(0, low - (d.prevLowEnergy || low));
+-    d.prevLowEnergy = low;
+-    d.fluxAvg = d.fluxAvg ? d.fluxAvg * .94 + flux * .06 : flux;
+-    const threshold = Math.max(4.5, (d.fluxAvg || 0) * 2.35);
++    const ctx = state.ctx;
++    const binHz = ctx.sampleRate / d.analyser.fftSize;
++    const lo = Math.max(1, Math.floor(42 / binHz));
++    const hi = Math.min(spectrum.length - 1, Math.ceil(230 / binHz));
++    if (!d.prevSpectrum || d.prevSpectrum.length !== spectrum.length) d.prevSpectrum = new Uint8Array(spectrum.length);
++    let flux = 0, energy = 0, bins = 0;
++    for (let i=lo; i<=hi; i++) {
++      const cur = spectrum[i];
++      const prev = d.prevSpectrum[i] || 0;
++      flux += Math.max(0, cur - prev);
++      energy += cur;
++      d.prevSpectrum[i] = cur;
++      bins++;
++    }
++    flux /= Math.max(1,bins);
++    energy /= Math.max(1,bins);
++    d.fluxAvg = d.fluxAvg ? d.fluxAvg * .965 + flux * .035 : flux;
++    d.energyAvg = d.energyAvg ? d.energyAvg * .97 + energy * .03 : energy;
+     const nowMedia = d.audio.currentTime;
+-    const refractory = Math.max(.18, beat * .38);
+-    if (flux < threshold || nowMedia - (d.lastOnsetMedia ?? -99) < refractory) return;
++    const currentBeat = beatLengthMedia(id) || .5;
++    const refractory = Math.max(.20, currentBeat * .34);
++    const threshold = Math.max(3.2, (d.fluxAvg || 0) * 1.85);
++    const strongEnough = energy > Math.max(22, (d.energyAvg || 0) * .78);
++    if (flux < threshold || !strongEnough || nowMedia - (d.lastOnsetMedia ?? -99) < refractory) return;
+     d.lastOnsetMedia = nowMedia;
++    d.onsetTimes = d.onsetTimes || [];
++    d.onsetTimes.push(nowMedia);
++    if (d.onsetTimes.length > 40) d.onsetTimes.shift();
++    estimateTempoFromOnsets(d);
++    const beat = beatLengthMedia(id);
++    if (!beat) return;
+@@ -135,18 +227,20 @@
+-      let err = nowMedia - predicted;
+-      if (Math.abs(err) <= beat * .22) {
+-        const weight = d.beatConfidence >= 5 ? .08 : .20;
++      const err = nowMedia - predicted;
++      if (Math.abs(err) <= beat * .20) {
++        const weight = d.beatConfidence >= 6 ? .055 : .16;
+         d.beatAnchor += err * weight;
+-        d.beatConfidence = Math.min(10, (d.beatConfidence || 0) + 1);
+-      } else if (nowMedia - (d.lastAnchorResetMedia || 0) > beat * 8) {
++        d.beatConfidence = Math.min(12, (d.beatConfidence || 0) + 1);
++      } else if ((d.tempoConfidence || 0) >= 4 && nowMedia - (d.lastAnchorResetMedia || 0) > beat * 6) {
+         d.beatAnchor = nowMedia;
+-        d.beatConfidence = Math.max(1, (d.beatConfidence || 0) - 2);
++        d.beatConfidence = Math.max(2, (d.beatConfidence || 0) - 1);
+         d.lastAnchorResetMedia = nowMedia;
+       }
+     }
+     updateGridUi(id);
++    updateBpmDisplay(id);
+   }
+@@ -197,12 +291,13 @@
+-    const targetBase=Number(target.track.bpm), masterNow=effectiveBpm(masterId); if(!targetBase||!masterNow)return;
++    const targetBase=sourceBpm(targetId), masterNow=effectiveBpm(masterId); if(!targetBase||!masterNow)return;
+     const nominal=masterNow/targetBase; target.syncNominalRate=nominal;
+     if(target.audio.paused||master.audio.paused){target.audio.playbackRate=nominal;target.syncMode='ARM';target.syncStableCount=0;setSyncUi(targetId,true,masterId,'ARM');return;}
++    const gridReady=(target.beatConfidence||0)>=3 && (master.beatConfidence||0)>=3 && (target.tempoConfidence||0)>=3 && (master.tempoConfidence||0)>=3;
++    if(!gridReady){ target.audio.playbackRate=nominal; target.syncMode='ARM'; setSyncUi(targetId,true,masterId,'ARM'); return; }
+     const error=normalizedPhaseError(targetId,masterId); if(error===null)return;
+     const abs=Math.abs(error); let correction=0;
+-    const gridReady=(target.beatConfidence||0)>=2 && (master.beatConfidence||0)>=2;
+@@ -224,7 +319,7 @@
+-    const targetBase=Number(target.track.bpm), masterNow=effectiveBpm(masterId);
++    const targetBase=sourceBpm(targetId), masterNow=effectiveBpm(masterId);
+@@ -236,7 +331,7 @@
+-    const bpm = Number(d?.track?.bpm);
++    const bpm = sourceBpm(id);
+@@ -302,8 +397,8 @@
+-    analyser.fftSize = 256;
+-    analyser.smoothingTimeConstant = 0.75;
++    analyser.fftSize = 2048;
++    analyser.smoothingTimeConstant = 0.18;
+@@ -321,7 +416,7 @@
+-      beatAnchor: NaN, beatConfidence: 0, prevLowEnergy: 0, fluxAvg: 0, lastOnsetMedia: -99, lastAnchorResetMedia: 0,
++      beatAnchor: NaN, beatConfidence: 0, detectedBpm: NaN, tempoConfidence: 0, onsetTimes: [], prevSpectrum: null, fluxAvg: 0, energyAvg: 0, lastOnsetMedia: -99, lastAnchorResetMedia: 0,
+@@ -521,7 +616,7 @@
+-    deck.beatAnchor = NaN; deck.beatConfidence = 0; deck.prevLowEnergy = 0; deck.fluxAvg = 0; deck.lastOnsetMedia = -99; updateGridUi(id);
++    deck.beatAnchor = NaN; deck.beatConfidence = 0; deck.detectedBpm = NaN; deck.tempoConfidence = 0; deck.onsetTimes = []; deck.prevSpectrum = null; deck.fluxAvg = 0; deck.energyAvg = 0; deck.lastOnsetMedia = -99; updateGridUi(id);
