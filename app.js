@@ -27,6 +27,7 @@
     renderedTrackIds: new Set(),
     deferredInstallPrompt: null,
     focusMode: false,
+    masterDeck: 'A',
   };
 
   function formatTime(seconds) {
@@ -80,122 +81,157 @@
     $(`bpm${id}`).textContent = changed ? `BPM ${eff.toFixed(1)}*` : `BPM ${base}`;
   }
 
+  function beatLengthMedia(id) {
+    const bpm = Number(state.decks[id]?.track?.bpm);
+    return bpm > 0 ? 60 / bpm : null;
+  }
+
+  function phaseFromAnchor(id) {
+    const d = state.decks[id];
+    const beat = beatLengthMedia(id);
+    if (!d || !beat) return null;
+    const anchor = Number.isFinite(d.beatAnchor) ? d.beatAnchor : 0;
+    return ((((d.audio.currentTime - anchor) / beat) % 1) + 1) % 1;
+  }
+
   function normalizedPhaseError(targetId, masterId) {
-    const target = state.decks[targetId];
-    const master = state.decks[masterId];
-    const targetBpm = Number(target?.track?.bpm);
-    const masterBpm = Number(master?.track?.bpm);
-    if (!targetBpm || !masterBpm) return null;
-    const targetBeat = 60 / targetBpm;
-    const masterBeat = 60 / masterBpm;
-    const targetPhase = ((target.audio.currentTime / targetBeat) % 1 + 1) % 1;
-    const masterPhase = ((master.audio.currentTime / masterBeat) % 1 + 1) % 1;
-    let error = targetPhase - masterPhase;
+    const a = phaseFromAnchor(targetId), b = phaseFromAnchor(masterId);
+    if (a === null || b === null) return null;
+    let error = a - b;
     if (error > .5) error -= 1;
     if (error < -.5) error += 1;
     return error;
   }
 
-  function setSyncUi(id, active, masterId = null) {
+  function updateGridUi(id) {
+    const d = state.decks[id], el = $(`grid${id}`);
+    if (!el) return;
+    const ready = (d?.beatConfidence || 0) >= 3;
+    el.textContent = ready ? 'GRID ✓' : (d?.track ? 'ANALYZE' : 'GRID —');
+    el.classList.toggle('grid-ready', ready);
+  }
+
+  function observeBeat(id, spectrum) {
+    const d = state.decks[id];
+    if (!d?.track || d.audio.paused) return;
+    const bpm = Number(d.track.bpm), beat = bpm > 0 ? 60 / bpm : 0;
+    if (!beat) return;
+    const bins = Math.min(16, spectrum.length);
+    let low = 0;
+    for (let i=1;i<bins;i++) low += spectrum[i];
+    low /= Math.max(1,bins-1);
+    const flux = Math.max(0, low - (d.prevLowEnergy || low));
+    d.prevLowEnergy = low;
+    d.fluxAvg = d.fluxAvg ? d.fluxAvg * .94 + flux * .06 : flux;
+    const threshold = Math.max(4.5, (d.fluxAvg || 0) * 2.35);
+    const nowMedia = d.audio.currentTime;
+    const refractory = Math.max(.18, beat * .38);
+    if (flux < threshold || nowMedia - (d.lastOnsetMedia ?? -99) < refractory) return;
+    d.lastOnsetMedia = nowMedia;
+
+    if (!Number.isFinite(d.beatAnchor)) {
+      d.beatAnchor = nowMedia;
+      d.beatConfidence = 1;
+    } else {
+      const n = Math.round((nowMedia - d.beatAnchor) / beat);
+      const predicted = d.beatAnchor + n * beat;
+      let err = nowMedia - predicted;
+      if (Math.abs(err) <= beat * .22) {
+        const weight = d.beatConfidence >= 5 ? .08 : .20;
+        d.beatAnchor += err * weight;
+        d.beatConfidence = Math.min(10, (d.beatConfidence || 0) + 1);
+      } else if (nowMedia - (d.lastAnchorResetMedia || 0) > beat * 8) {
+        d.beatAnchor = nowMedia;
+        d.beatConfidence = Math.max(1, (d.beatConfidence || 0) - 2);
+        d.lastAnchorResetMedia = nowMedia;
+      }
+    }
+    updateGridUi(id);
+  }
+
+  function setMasterDeck(id, quiet=false) {
+    if (!state.decks[id]?.track && state.audioReady) {
+      if (!quiet) setMessage(`Load lagu ke Deck ${id} dulu untuk MASTER.`, true);
+      return;
+    }
+    state.masterDeck = id;
+    document.querySelectorAll('[data-action="master"]').forEach(b=>b.classList.toggle('active',b.dataset.deck===id));
+    const other = id === 'A' ? 'B' : 'A';
+    if (state.decks[other]?.syncActive) {
+      state.decks[other].syncMasterId = id;
+      beginBeatChase(other);
+    }
+    if (state.decks[id]?.syncActive) disableSync(id,true);
+    if (!quiet) setMessage(`Deck ${id} = MASTER CLOCK.`);
+  }
+
+  function setSyncUi(id, active, masterId = null, mode = 'LOCK') {
     const btn = document.querySelector(`[data-action="sync"][data-deck="${id}"]`);
     const label = $(`syncState${id}`);
     btn?.classList.toggle('synced', active);
+    document.querySelector(`.deck[data-deck="${id}"]`)?.classList.toggle('sync-follow', active);
     if (btn) btn.textContent = active ? 'SYNC ✓' : 'SYNC';
     if (label) {
-      label.textContent = active ? `LOCK ${masterId}` : 'FREE';
-      label.classList.toggle('locked', active);
+      label.className = 'sync-state';
+      if (active) label.classList.add(mode === 'LOCK' ? 'locked' : mode === 'CHASE' ? 'chasing' : 'armed');
+      label.textContent = active ? `${mode} ${masterId}` : (state.masterDeck === id ? 'MASTER' : 'FREE');
     }
   }
 
   function disableSync(id, quiet = false) {
-    const d = state.decks[id];
-    if (!d) return;
-    d.syncActive = false;
-    d.syncMasterId = null;
-    d.syncNominalRate = 1;
-    d.lastSyncAt = 0;
-    setSyncUi(id, false);
+    const d = state.decks[id]; if (!d) return;
+    if (d.syncActive && Number.isFinite(d.syncNominalRate) && d.syncNominalRate > 0) d.audio.playbackRate = d.syncNominalRate;
+    d.syncActive=false; d.syncMasterId=null; d.syncMode='FREE'; d.syncStableCount=0; d.syncNominalRate=1; d.lastSyncAt=0;
+    setSyncUi(id,false); updateBpmDisplay(id);
     if (!quiet && d.track) setMessage(`Deck ${id} SYNC dilepas.`);
   }
 
-  function alignPhaseNow(targetId) {
-    const target = state.decks[targetId];
-    const masterId = target?.syncMasterId;
-    const master = state.decks[masterId];
-    if (!target?.syncActive || !master?.track || !target.track) return;
-    const error = normalizedPhaseError(targetId, masterId);
-    const baseBpm = Number(target.track.bpm);
-    if (error === null || !baseBpm) return;
-    const beatSeconds = 60 / baseBpm;
-    const next = Math.max(0, target.audio.currentTime - error * beatSeconds);
-    if (Number.isFinite(next)) target.audio.currentTime = next;
+  function beginBeatChase(targetId) {
+    const d=state.decks[targetId]; if(!d?.syncActive)return;
+    d.syncMode='CHASE'; d.syncStableCount=0; d.lastSyncAt=0; d.chaseStartedAt=performance.now();
+    setSyncUi(targetId,true,d.syncMasterId,'CHASE');
   }
 
   function maintainSync(targetId) {
-    const target = state.decks[targetId];
-    if (!target?.syncActive || !target.track) return;
-    const masterId = target.syncMasterId;
-    const master = state.decks[masterId];
-    if (!master?.track) return disableSync(targetId, true);
-    const now = performance.now();
-    if (now - (target.lastSyncAt || 0) < 120) return;
-    target.lastSyncAt = now;
-
-    const targetBase = Number(target.track.bpm);
-    const masterNow = effectiveBpm(masterId);
-    if (!targetBase || !masterNow) return;
-    const nominal = masterNow / targetBase;
-    target.syncNominalRate = nominal;
-
-    if (target.audio.paused || master.audio.paused) {
-      target.audio.playbackRate = nominal;
-      return;
-    }
-
-    const error = normalizedPhaseError(targetId, masterId);
-    if (error === null) return;
-    // Tiny PLL-style tempo correction: follows phase continuously without large jumps.
-    const correction = Math.max(-0.009, Math.min(0.009, -error * 0.035));
-    target.audio.playbackRate = nominal * (1 + correction);
+    const target=state.decks[targetId]; if(!target?.syncActive||!target.track)return;
+    const masterId=target.syncMasterId, master=state.decks[masterId];
+    if(!master?.track)return disableSync(targetId,true);
+    const now=performance.now(); if(now-(target.lastSyncAt||0)<25)return; target.lastSyncAt=now;
+    const targetBase=Number(target.track.bpm), masterNow=effectiveBpm(masterId); if(!targetBase||!masterNow)return;
+    const nominal=masterNow/targetBase; target.syncNominalRate=nominal;
+    if(target.audio.paused||master.audio.paused){target.audio.playbackRate=nominal;target.syncMode='ARM';target.syncStableCount=0;setSyncUi(targetId,true,masterId,'ARM');return;}
+    const error=normalizedPhaseError(targetId,masterId); if(error===null)return;
+    const abs=Math.abs(error); let correction=0;
+    const gridReady=(target.beatConfidence||0)>=2 && (master.beatConfidence||0)>=2;
+    if(abs>.12){ correction=Math.max(-.24,Math.min(.24,-error*1.15)); target.syncMode='CHASE'; target.syncStableCount=0; }
+    else if(abs>.035){ correction=Math.max(-.085,Math.min(.085,-error*.75)); target.syncMode='CHASE'; target.syncStableCount=0; }
+    else if(abs>.012){ correction=Math.max(-.026,Math.min(.026,-error*.42)); target.syncMode='CHASE'; target.syncStableCount=0; }
+    else { correction=Math.max(-.004,Math.min(.004,-error*.10)); target.syncStableCount=(target.syncStableCount||0)+1; if(target.syncStableCount>=7)target.syncMode='LOCK'; }
+    target.audio.playbackRate=nominal*(1+correction);
+    setSyncUi(targetId,true,masterId,target.syncMode==='LOCK'?'LOCK':'CHASE');
+    if(!gridReady && $(`syncState${targetId}`)) $(`syncState${targetId}`).title='Beat anchor masih dianalisis';
     updateBpmDisplay(targetId);
   }
 
   async function syncDeck(targetId) {
     await initAudio();
-    const masterId = targetId === 'A' ? 'B' : 'A';
-    const target = state.decks[targetId];
-    const master = state.decks[masterId];
-    if (!target?.track || !master?.track) {
-      return setMessage('Load lagu ke Deck A dan B dulu untuk SYNC.', true);
+    let masterId=state.masterDeck;
+    if(masterId===targetId){
+      const other=targetId==='A'?'B':'A';
+      if(!state.decks[other]?.track)return setMessage('Deck ini MASTER. Load deck lain lalu SYNC deck follower.',true);
+      return setMessage(`Deck ${targetId} adalah MASTER. Tekan SYNC di Deck ${other}.`,true);
     }
-    if (target.syncActive) {
-      disableSync(targetId);
-      return;
-    }
-    // Only one deck follows at a time to avoid circular sync.
-    if (master.syncActive) disableSync(masterId, true);
-
-    const targetBase = Number(target.track.bpm);
-    const masterNow = effectiveBpm(masterId);
-    if (!targetBase || !masterNow) {
-      return setMessage('BPM metadata salah satu track tidak tersedia. Pilih track lain untuk SYNC.', true);
-    }
-    const rate = masterNow / targetBase;
-    const percent = (rate - 1) * 100;
-    if (Math.abs(percent) > 8) {
-      return setMessage(`Beda tempo terlalu jauh (${percent > 0 ? '+' : ''}${percent.toFixed(1)}%). SYNC dibatasi ±8%.`, true);
-    }
-    target.syncActive = true;
-    target.syncMasterId = masterId;
-    target.syncNominalRate = rate;
-    target.lastSyncAt = 0;
-    target.audio.playbackRate = rate;
-    $(`pitch${targetId}`).value = percent.toFixed(1);
-    $(`pitchLabel${targetId}`).textContent = `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%`;
-    alignPhaseNow(targetId);
+    const target=state.decks[targetId], master=state.decks[masterId];
+    if(!target?.track||!master?.track)return setMessage('Load lagu ke MASTER dan follower dulu untuk SYNC.',true);
+    if(target.syncActive){disableSync(targetId);return;}
+    const targetBase=Number(target.track.bpm), masterNow=effectiveBpm(masterId);
+    if(!targetBase||!masterNow)return setMessage('BPM metadata salah satu track tidak tersedia.',true);
+    const rate=masterNow/targetBase, pct=(rate-1)*100;
+    if(Math.abs(pct)>10)return setMessage(`Beda tempo terlalu jauh (${pct>0?'+':''}${pct.toFixed(1)}%). Pilih track BPM lebih dekat.`,true);
+    target.syncActive=true;target.syncMasterId=masterId;target.syncNominalRate=rate;target.syncStableCount=0;target.audio.playbackRate=rate;
+    $(`pitch${targetId}`).value=Math.max(-8,Math.min(8,pct)).toFixed(1);$(`pitchLabel${targetId}`).textContent=`${pct>=0?'+':''}${pct.toFixed(1)}%`;
     updateBpmDisplay(targetId);
-    setSyncUi(targetId, true, masterId);
-    setMessage(`Deck ${targetId} SMART SYNC → Deck ${masterId}: BPM + continuous phase lock aktif.`);
+    if(!target.audio.paused&&!master.audio.paused){beginBeatChase(targetId);maintainSync(targetId);setMessage(`Deck ${targetId} CHASE → MASTER ${masterId}.`);}else{target.syncMode='ARM';setSyncUi(targetId,true,masterId,'ARM');setMessage(`Deck ${targetId} armed. PLAY kapan pun → otomatis chase MASTER ${masterId}.`);}
   }
 
   function nudgeDeck(id, direction) {
@@ -282,7 +318,10 @@
       syncActive: false,
       syncMasterId: null,
       syncNominalRate: 1,
+      syncMode: 'FREE',
+      syncStableCount: 0,
       lastSyncAt: 0,
+      beatAnchor: NaN, beatConfidence: 0, prevLowEnergy: 0, fluxAvg: 0, lastOnsetMedia: -99, lastAnchorResetMedia: 0,
     };
   }
 
@@ -482,6 +521,7 @@
     $(`pitch${id}`).value = 0;
     $(`pitchLabel${id}`).textContent = '0.0%';
     deck.track = track;
+    deck.beatAnchor = NaN; deck.beatConfidence = 0; deck.prevLowEnergy = 0; deck.fluxAvg = 0; deck.lastOnsetMedia = -99; updateGridUi(id);
 
     // v3: build the stream URL through Audius' current SDK/API path.
     // This fixes the v2 bug where search used the new SDK but playback still used an old public stream URL.
@@ -511,12 +551,16 @@
     const btn = document.querySelector(`[data-action="play"][data-deck="${id}"]`);
     if (deck.audio.paused) {
       try {
+        await deck.audio.play();
+        if (!state.decks[state.masterDeck]?.track || (state.decks[state.masterDeck]?.audio.paused && !deck.syncActive)) setMasterDeck(id, true);
         if (deck.syncActive) {
           const master = state.decks[deck.syncMasterId];
-          if (master?.track && !master.audio.paused) alignPhaseNow(id);
+          if (master?.track && !master.audio.paused) {
+            beginBeatChase(id);
+            // Run immediately once instead of waiting for the animation loop.
+            maintainSync(id);
+          }
         }
-        await deck.audio.play();
-        if (deck.syncActive) alignPhaseNow(id);
         btn.textContent = 'Ⅱ';
         btn.classList.add('playing');
       } catch (err) {
@@ -564,6 +608,7 @@
       const analyser = deck.analyser;
       const data = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(data);
+      observeBeat(id, data);
       const canvas = $(`wave${id}`);
       const c = canvas.getContext('2d');
       const w = canvas.width, h = canvas.height;
@@ -638,6 +683,7 @@
   function bindUi() {
     $('apiKeyInput').value = state.apiKey;
     initSdk();
+    document.querySelectorAll('[data-action="master"]').forEach(b=>b.classList.toggle('active',b.dataset.deck===state.masterDeck));
     $('djModeBtn').addEventListener('click', toggleDjMode);
     $('installBtn').addEventListener('click', installPwa);
     if (!isStandalone()) $('installBtn').hidden = false;
@@ -681,6 +727,7 @@
     $('trendingBtn').addEventListener('click', () => searchTracks('', true));
     $('moreBtn').addEventListener('click', () => searchTracks(state.lastQuery, state.lastTrending, true));
 
+    document.querySelectorAll('[data-action="master"]').forEach(b => b.addEventListener('click', () => setMasterDeck(b.dataset.deck)));
     document.querySelectorAll('[data-action="play"]').forEach(b => b.addEventListener('click', () => togglePlay(b.dataset.deck)));
     document.querySelectorAll('[data-action="sync"]').forEach(b => b.addEventListener('click', () => syncDeck(b.dataset.deck)));
     document.querySelectorAll('[data-action="nudge"]').forEach(b => b.addEventListener('click', () => nudgeDeck(b.dataset.deck, Number(b.dataset.dir))));
@@ -760,4 +807,5 @@
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
   }
   bindUi();
+  if (new URLSearchParams(location.search).get('mode') === 'dj') setTimeout(()=>document.body.classList.add('focus-mode'),50);
 })();

@@ -9,10 +9,12 @@
   <meta name="apple-mobile-web-app-title" content="ACC DJ" />
   <meta name="description" content="ACC DJ PWA prototype — 2-deck streaming DJ mixer powered by Audius." />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="icons/icon-192.png" type="image/png" />
+  <link rel="icon" href="icons/favicon.ico" sizes="any" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <link rel="stylesheet" href="styles.css" />
-  <title>ACC DJ — v5</title>
+  <title>ACC DJ — Engine v1</title>
 </head>
 <body>
   <div id="app">
@@ -87,14 +89,14 @@
         <article class="deck panel" data-deck="A">
           <div class="deck-head">
             <span class="deck-label">DECK A</span>
-            <button class="cue-btn" data-action="cue" data-deck="A">CUE A</button>
+            <div class="deck-head-actions"><button class="master-btn active" data-action="master" data-deck="A">MASTER</button><button class="cue-btn" data-action="cue" data-deck="A">CUE A</button></div>
           </div>
           <div class="track-meta">
             <img id="coverA" class="cover" alt="Cover Deck A" src="icons/placeholder.svg" />
             <div class="track-copy">
               <h2 id="titleA">No track loaded</h2>
               <p id="artistA">Audius</p>
-              <div class="chips"><span id="bpmA">BPM —</span><span id="keyA">KEY —</span></div>
+              <div class="chips"><span id="bpmA">BPM —</span><span id="keyA">KEY —</span><span id="gridA">GRID —</span></div>
             </div>
           </div>
           <canvas id="waveA" class="wave" width="900" height="130"></canvas>
@@ -149,14 +151,14 @@
         <article class="deck panel" data-deck="B">
           <div class="deck-head">
             <span class="deck-label">DECK B</span>
-            <button class="cue-btn" data-action="cue" data-deck="B">CUE B</button>
+            <div class="deck-head-actions"><button class="master-btn" data-action="master" data-deck="B">MASTER</button><button class="cue-btn" data-action="cue" data-deck="B">CUE B</button></div>
           </div>
           <div class="track-meta">
             <img id="coverB" class="cover" alt="Cover Deck B" src="icons/placeholder.svg" />
             <div class="track-copy">
               <h2 id="titleB">No track loaded</h2>
               <p id="artistB">Audius</p>
-              <div class="chips"><span id="bpmB">BPM —</span><span id="keyB">KEY —</span></div>
+              <div class="chips"><span id="bpmB">BPM —</span><span id="keyB">KEY —</span><span id="gridB">GRID —</span></div>
             </div>
           </div>
           <canvas id="waveB" class="wave" width="900" height="130"></canvas>
@@ -186,7 +188,7 @@
       </section>
 
       <section class="notes panel">
-        <strong>HP / Android:</strong> Split Cue memakai satu output stereo sebagai dua jalur mono. Agar Master dan Cue benar-benar terpisah, pakai USB-C audio DAC + DJ split-cue cable (bukan splitter headphone biasa). PWA tidak menyimpan file lagu permanen; audio di-stream saat diputar.
+        <strong>ACC DJ Engine v1:</strong> live beat-anchor analysis + master/follower chase. <strong>HP / Android:</strong> Split Cue memakai satu output stereo sebagai dua jalur mono. Agar Master dan Cue benar-benar terpisah, pakai USB-C audio DAC + DJ split-cue cable (bukan splitter headphone biasa). PWA tidak menyimpan file lagu permanen; audio di-stream saat diputar.
       </section>
     </main>
 
