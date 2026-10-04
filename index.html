@@ -1,219 +1,28 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="ACC DJ" />
-  <meta name="description" content="ACC DJ PWA prototype — 2-deck streaming DJ mixer powered by Audius." />
-  <link rel="manifest" href="/manifest.webmanifest?v=8" />
-  <link rel="icon" href="/icon-192.png?v=8" type="image/png" sizes="192x192" />
-  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
-  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=8" />
-  <link rel="stylesheet" href="styles.css" />
-  <title>ACC DJ — Engine v1</title>
-  <link rel="shortcut icon" href="/favicon.ico?v=8" />
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090909">
+<title>DJ SAIXKO — Agus Putra</title>
+<meta name="description" content="Official profile and booking page for DJ SAIXKO / Agus Putra.">
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#090909;color:#f5f5f5;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5}a{color:inherit;text-decoration:none}.w{width:min(1120px,calc(100% - 34px));margin:auto}
+nav{position:fixed;z-index:20;top:16px;left:0;right:0}.nav{width:min(1080px,calc(100% - 34px));margin:auto;padding:10px 12px 10px 18px;border:1px solid #ffffff16;border-radius:999px;background:#090909c9;backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between}.logo{font-weight:950;letter-spacing:.14em;font-size:.8rem}.menu{display:flex;gap:7px;align-items:center}.menu a{padding:10px 13px;color:#bbb;font-size:.86rem}.menu .book,.primary{background:#fff;color:#080808;border-radius:999px;font-weight:850}
+.hero{min-height:100svh;position:relative;overflow:hidden;display:flex;align-items:flex-end}.heroimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:58% 17%}.shade{position:absolute;inset:0;background:linear-gradient(90deg,#000 0%,#000d 34%,#0004 70%),linear-gradient(0deg,#090909 0%,transparent 44%)}.hero .inner{position:relative;z-index:2;padding:150px 0 82px;max-width:730px}.tag{display:inline-flex;gap:8px;align-items:center;border:1px solid #ffffff18;background:#ffffff0b;padding:8px 12px;border-radius:999px;font-size:.75rem;font-weight:850;letter-spacing:.13em;text-transform:uppercase}.tag:before{content:"";width:7px;height:7px;background:#fff;border-radius:50%;box-shadow:0 0 18px #fff}.hero h1{font-size:clamp(4.4rem,13vw,10.5rem);line-height:.82;letter-spacing:-.075em;margin:22px 0 20px}.hero p{font-size:clamp(1rem,2vw,1.18rem);color:#ccc;max-width:590px}.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.btn{min-height:52px;padding:0 20px;border:1px solid #ffffff18;border-radius:999px;background:#171719;display:inline-flex;align-items:center;font-weight:850}.primary{background:#fff}
+section{padding:90px 0}.head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:28px}.k{font-size:.76rem;color:#888;letter-spacing:.15em;text-transform:uppercase;font-weight:850}h2{font-size:clamp(2.4rem,6vw,4.5rem);letter-spacing:-.055em;line-height:.95;margin:7px 0 0}.lead{max-width:530px;color:#aaa}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.card{border:1px solid #ffffff16;background:linear-gradient(180deg,#121315,#0d0e10);border-radius:28px;padding:28px;min-height:240px;position:relative;overflow:hidden}.profile{grid-column:span 7}.info{grid-column:span 5}.quote{font-weight:950;font-size:clamp(2.1rem,5vw,4rem);letter-spacing:-.05em;line-height:.98;margin:26px 0}.card p{color:#a9abb0}.row{display:flex;justify-content:space-between;gap:18px;padding:13px 0;border-top:1px solid #ffffff12}.row span:first-child{color:#858890}.row span:last-child{text-align:right;font-weight:750}.part .card{grid-column:span 4;display:flex;flex-direction:column;justify-content:flex-end}.n{position:absolute;top:18px;right:22px;color:#555;font-weight:850}.card h3{font-size:1.5rem;margin:6px 0}
+.stage{border-radius:34px;min-height:560px;overflow:hidden;position:relative;border:1px solid #ffffff16}.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.stage:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#000d,transparent 60%)}.stagecopy{position:absolute;z-index:2;left:34px;bottom:34px}.stage h2{font-size:clamp(2.8rem,7vw,5.2rem)}.booking{border:1px solid #ffffff16;border-radius:36px;padding:clamp(28px,6vw,64px);background:radial-gradient(circle at 90% 10%,#ffffff18,transparent 28%),#111214}.booking h2{max-width:760px}.contacts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:30px}.pill{padding:16px 18px;border:1px solid #ffffff14;background:#09090a;border-radius:18px}.pill small{display:block;color:#7c7f85}.pill strong{display:block;margin-top:3px}
+footer{border-top:1px solid #ffffff12;color:#74777d;padding:28px 0 40px}.fr{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+@media(max-width:760px){.menu a:not(.book){display:none}.heroimg{object-position:56% 14%}.shade{background:linear-gradient(0deg,#090909 0%,#0002 62%),linear-gradient(90deg,#0008,transparent 70%)}.hero .inner{padding:430px 0 58px}.hero h1{font-size:clamp(4.2rem,23vw,7.4rem)}section{padding:68px 0}.head{display:block}.lead{margin-top:16px}.profile,.info,.part .card{grid-column:1/-1}.stage{min-height:430px}.stagecopy{left:22px;bottom:24px}.contacts{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <div id="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark brand-logo"><img src="/icon-192.png?v=8" alt="ACC DJ" /></div>
-        <div>
-          <h1>DJ</h1>
-          <p>STREAM • MIX • CUE</p>
-        </div>
-      </div>
-      <div class="top-actions">
-        <span id="audioStatus" class="status-dot">Audio idle</span>
-        <button id="djModeBtn" class="ghost focus-btn">DJ MODE</button>
-        <button id="installBtn" class="ghost install-btn" hidden>INSTALL</button>
-        <button id="musicBtn" class="primary music-toggle">♫ MUSIC</button>
-        <button id="settingsBtn" class="ghost api-btn">API</button>
-      </div>
-    </header>
-
-    <main>
-      <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
-      <section id="musicDrawer" class="library panel music-drawer" aria-hidden="true">
-        <div class="music-drawer-head">
-          <div>
-            <strong>MUSIC BROWSER</strong>
-            <span>Audius streaming • pilih lagu lalu LOAD ke Deck A/B</span>
-          </div>
-          <button id="closeMusicBtn" class="ghost" type="button">✕</button>
-        </div>
-        <div class="quick-genres" aria-label="Quick genres">
-          <button data-genre="" class="genre-chip active">TRENDING</button>
-          <button data-genre="House" class="genre-chip">HOUSE</button>
-          <button data-genre="Tech House" class="genre-chip">TECH HOUSE</button>
-          <button data-genre="Deep House" class="genre-chip">DEEP HOUSE</button>
-          <button data-genre="Techno" class="genre-chip">TECHNO</button>
-          <button data-genre="Trance" class="genre-chip">TRANCE</button>
-          <button data-genre="Drum & Bass" class="genre-chip">DNB</button>
-          <button data-genre="Dubstep" class="genre-chip">DUBSTEP</button>
-          <button data-genre="Electronic" class="genre-chip">ELECTRONIC</button>
-          <button data-genre="Future House" class="genre-chip">FUTURE</button>
-          <button data-genre="Progressive House" class="genre-chip">PROGRESSIVE</button>
-        </div>
-        <div class="library-row">
-          <div class="search-wrap">
-            <input id="searchInput" type="search" placeholder="Cari track / artist di Audius..." autocomplete="off" />
-            <button id="searchBtn" class="primary">SEARCH</button>
-          </div>
-          <div class="filters">
-            <select id="genreSelect" aria-label="Genre">
-              <option value="">Semua genre</option>
-              <option>House</option>
-              <option>Tech House</option>
-              <option>Deep House</option>
-              <option>Techno</option>
-              <option>Trance</option>
-              <option>Drum & Bass</option>
-              <option>Dubstep</option>
-              <option>Electronic</option>
-              <option>Future House</option>
-              <option>Progressive House</option>
-            </select>
-            <button id="trendingBtn" class="ghost">TRENDING</button>
-          </div>
-        </div>
-        <div id="libraryMessage" class="library-message">Masukkan kata kunci atau buka Trending.</div>
-        <div id="results" class="results"></div>
-        <div class="browser-footer"><button id="moreBtn" class="ghost" type="button" hidden>MORE TRACKS</button></div>
-      </section>
-
-      <section class="decks-grid">
-        <article class="deck panel" data-deck="A">
-          <div class="deck-head">
-            <span class="deck-label">DECK A</span>
-            <div class="deck-head-actions"><button class="master-btn active" data-action="master" data-deck="A">MASTER</button><button class="cue-btn" data-action="cue" data-deck="A">CUE A</button></div>
-          </div>
-          <div class="track-meta">
-            <img id="coverA" class="cover" alt="Cover Deck A" src="icons/placeholder.svg" />
-            <div class="track-copy">
-              <h2 id="titleA">No track loaded</h2>
-              <p id="artistA">Audius</p>
-              <div class="chips"><span id="bpmA">BPM —</span><span id="keyA">KEY —</span><span id="gridA">GRID —</span></div>
-            </div>
-          </div>
-          <canvas id="waveA" class="wave" width="900" height="130"></canvas>
-          <input id="seekA" class="seek" type="range" min="0" max="1000" value="0" />
-          <div class="time-row"><span id="timeA">00:00</span><span id="durationA">00:00</span></div>
-          <div class="transport">
-            <button class="transport-btn" data-action="play" data-deck="A">▶</button>
-            <button class="transport-btn" data-action="restart" data-deck="A">↺</button>
-            <button class="transport-btn sync-btn" data-action="sync" data-deck="A">SYNC</button>
-            <button class="transport-btn" data-action="loop" data-deck="A">LOOP</button>
-          </div>
-          <div class="nudge-row">
-            <button class="nudge-btn" data-action="nudge" data-dir="-1" data-deck="A">◀ NUDGE</button>
-            <span id="syncStateA" class="sync-state">FREE</span>
-            <button class="nudge-btn" data-action="nudge" data-dir="1" data-deck="A">NUDGE ▶</button>
-          </div>
-          <div class="controls-row">
-            <label>LOW<input id="lowA" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>MID<input id="midA" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>HIGH<input id="highA" type="range" min="-18" max="12" value="0" step="1" /></label>
-          </div>
-          <div class="pitch-row">
-            <label>PITCH <span id="pitchLabelA">0.0%</span></label>
-            <input id="pitchA" type="range" min="-8" max="8" value="0" step="0.1" />
-          </div>
-        </article>
-
-        <article class="mixer panel">
-          <div class="mixer-title">MIXER</div>
-          <div class="meters">
-            <div><span>A</span><meter id="meterA" min="0" max="1" value="0"></meter></div>
-            <div><span>B</span><meter id="meterB" min="0" max="1" value="0"></meter></div>
-          </div>
-          <label class="master-control">MASTER
-            <input id="masterVol" type="range" min="0" max="1" value="0.85" step="0.01" />
-          </label>
-          <div class="cue-mode">
-            <button id="splitCueBtn" class="mode-btn">SPLIT CUE: OFF</button>
-            <p id="cueHelp">Normal: master stereo.</p>
-          </div>
-          <div class="xfade-wrap">
-            <div class="xfade-label"><span>A</span><strong>CROSSFADER</strong><span>B</span></div>
-            <input id="crossfader" class="crossfader" type="range" min="-1" max="1" value="0" step="0.01" />
-          </div>
-          <div class="mixer-info">
-            <strong>Split Cue</strong>
-            <span>LEFT = Master mono</span>
-            <span>RIGHT = Cue mono</span>
-          </div>
-        </article>
-
-        <article class="deck panel" data-deck="B">
-          <div class="deck-head">
-            <span class="deck-label">DECK B</span>
-            <div class="deck-head-actions"><button class="master-btn" data-action="master" data-deck="B">MASTER</button><button class="cue-btn" data-action="cue" data-deck="B">CUE B</button></div>
-          </div>
-          <div class="track-meta">
-            <img id="coverB" class="cover" alt="Cover Deck B" src="icons/placeholder.svg" />
-            <div class="track-copy">
-              <h2 id="titleB">No track loaded</h2>
-              <p id="artistB">Audius</p>
-              <div class="chips"><span id="bpmB">BPM —</span><span id="keyB">KEY —</span><span id="gridB">GRID —</span></div>
-            </div>
-          </div>
-          <canvas id="waveB" class="wave" width="900" height="130"></canvas>
-          <input id="seekB" class="seek" type="range" min="0" max="1000" value="0" />
-          <div class="time-row"><span id="timeB">00:00</span><span id="durationB">00:00</span></div>
-          <div class="transport">
-            <button class="transport-btn" data-action="play" data-deck="B">▶</button>
-            <button class="transport-btn" data-action="restart" data-deck="B">↺</button>
-            <button class="transport-btn sync-btn" data-action="sync" data-deck="B">SYNC</button>
-            <button class="transport-btn" data-action="loop" data-deck="B">LOOP</button>
-          </div>
-          <div class="nudge-row">
-            <button class="nudge-btn" data-action="nudge" data-dir="-1" data-deck="B">◀ NUDGE</button>
-            <span id="syncStateB" class="sync-state">FREE</span>
-            <button class="nudge-btn" data-action="nudge" data-dir="1" data-deck="B">NUDGE ▶</button>
-          </div>
-          <div class="controls-row">
-            <label>LOW<input id="lowB" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>MID<input id="midB" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>HIGH<input id="highB" type="range" min="-18" max="12" value="0" step="1" /></label>
-          </div>
-          <div class="pitch-row">
-            <label>PITCH <span id="pitchLabelB">0.0%</span></label>
-            <input id="pitchB" type="range" min="-8" max="8" value="0" step="0.1" />
-          </div>
-        </article>
-      </section>
-
-      <section class="notes panel">
-        <strong>ACC DJ Engine v1:</strong> live beat-anchor analysis + master/follower chase. <strong>HP / Android:</strong> Split Cue memakai satu output stereo sebagai dua jalur mono. Agar Master dan Cue benar-benar terpisah, pakai USB-C audio DAC + DJ split-cue cable (bukan splitter headphone biasa). PWA tidak menyimpan file lagu permanen; audio di-stream saat diputar.
-      </section>
-    </main>
-
-    <dialog id="settingsDialog">
-      <form method="dialog" class="dialog-card">
-        <div class="dialog-head">
-          <div><strong>Audius API</strong><p>API key frontend aman menurut dokumentasi Audius.</p></div>
-          <button value="cancel" class="ghost">✕</button>
-        </div>
-        <label>API Key
-          <input id="apiKeyInput" type="text" placeholder="Tempel Audius API key di sini" autocomplete="off" />
-        </label>
-        <p class="hint">Tanpa key, prototype mencoba Public Mode. Untuk hasil paling stabil gunakan free Audius API key.</p>
-        <div class="dialog-actions">
-          <button id="clearKeyBtn" type="button" class="ghost">CLEAR</button>
-          <button id="saveKeyBtn" value="default" class="primary">SAVE</button>
-        </div>
-      </form>
-    </dialog>
-  </div>
-
-  <audio id="audioA" crossorigin="anonymous" preload="metadata"></audio>
-  <audio id="audioB" crossorigin="anonymous" preload="metadata"></audio>
-  <script src="https://cdn.jsdelivr.net/npm/@audius/sdk@latest/dist/sdk.min.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
+<nav><div class="nav"><a class="logo" href="#top">DJ SAIXKO</a><div class="menu"><a href="#profile">Profile</a><a href="#part">Part of</a><a href="#contact">Contact</a><a class="book" href="https://wa.me/6287758652795" target="_blank">BOOK DJ</a></div></div></nav>
+<main id="top">
+<section class="hero"><img class="heroimg" alt="DJ SAIXKO" src="data:image/jpeg;base64,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"><div class="shade"></div><div class="w inner"><div class="tag">Official DJ Profile</div><h1>SAIXKO</h1><p><strong>Agus Putra</strong> — DJ / nightlife artist. Booking event, venue, private party, dan kolaborasi bisa langsung melalui WhatsApp.</p><div class="btns"><a class="btn primary" href="https://wa.me/6287758652795" target="_blank">WhatsApp Booking ↗</a><a class="btn" href="https://instagram.com/saixkoinhere_" target="_blank">Instagram @saixkoinhere_ ↗</a></div></div></section>
+<section id="profile"><div class="w"><div class="head"><div><div class="k">Profile</div><h2>DJ SAIXKO</h2></div><p class="lead">Halaman resmi untuk profil, afiliasi, social media, dan booking langsung DJ SAIXKO.</p></div><div class="grid"><article class="card profile"><div class="k">Artist statement</div><div class="quote">“Bisa dikatakan DJ.”</div><p>Identitas simpel, clean, dan langsung ke inti: musik, venue, dan booking.</p></article><article class="card info"><h3>Quick info</h3><div class="row"><span>Stage name</span><span>DJ SAIXKO</span></div><div class="row"><span>Name</span><span>Agus Putra</span></div><div class="row"><span>Instagram</span><span>@saixkoinhere_</span></div><div class="row"><span>Booking</span><span>+62 877-5865-2795</span></div></article></div></div></section>
+<section id="part" class="part"><div class="w"><div class="head"><div><div class="k">Affiliations</div><h2>Part of</h2></div><p class="lead">Afiliasi yang tercantum pada profil publik DJ SAIXKO.</p></div><div class="grid"><article class="card"><span class="n">01</span><div class="k">Part of</div><h3>Phinisi Cruise</h3></article><article class="card"><span class="n">02</span><div class="k">Part of</div><h3>Karma Kandara</h3><p>Tandori Bar &amp; Grill</p></article><article class="card"><span class="n">03</span><div class="k">Part of</div><h3>Utama Jamlembur</h3></article></div></div></section>
+<section><div class="w"><div class="stage"><img alt="DJ setup" src="data:image/jpeg;base64,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"><div class="stagecopy"><div class="k">DJ / NIGHTLIFE</div><h2>Music first.<br>Booking direct.</h2></div></div></div></section>
+<section id="contact"><div class="w"><div class="booking"><div class="k">Booking & Contact</div><h2>Book DJ SAIXKO untuk event berikutnya.</h2><div class="btns"><a class="btn primary" href="https://wa.me/6287758652795" target="_blank">Chat WhatsApp ↗</a><a class="btn" href="tel:+6287758652795">Call</a><a class="btn" href="https://instagram.com/saixkoinhere_" target="_blank">Instagram ↗</a></div><div class="contacts"><div class="pill"><small>Artist</small><strong>DJ SAIXKO / Agus Putra</strong></div><div class="pill"><small>Instagram</small><strong>@saixkoinhere_</strong></div><div class="pill"><small>Booking</small><strong>+62 877-5865-2795</strong></div></div></div></div></section>
+</main>
+<footer><div class="w fr"><span>© 2026 DJ SAIXKO</span><span>Official profile & booking page</span></div></footer>
+</body></html>
