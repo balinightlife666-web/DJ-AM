@@ -138,6 +138,20 @@ footer{padding:28px 0 42px;color:#9d7f8f;border-top:1px solid var(--line)}
   .card,.xcard{border-radius:24px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.marquee-track{animation:none}}
+
+/* Press kit complete data */
+.press-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
+.press-copy p{margin:0 0 16px;color:var(--muted);line-height:1.8}.press-copy p:last-child{margin-bottom:0}
+.genre-panel{padding:clamp(30px,6vw,64px);border-radius:38px;background:radial-gradient(circle at 90% 10%,#ffbad965,transparent 28%),linear-gradient(145deg,#341226,#611d43);color:#fff;box-shadow:0 30px 90px #49152f30}
+.genre-panel .kicker{color:#f2a8c8}.genre-panel h2{max-width:820px}.genre-panel p{max-width:760px;color:#e4c8d6;line-height:1.75}
+.press-tags{display:flex;flex-wrap:wrap;gap:8px}.press-tag{display:inline-flex;align-items:center;min-height:34px;padding:8px 11px;border-radius:999px;border:1px solid #f3c5da;background:#fff8fb;color:#6d3551;font-size:.77rem;font-weight:850}
+.genre-panel .press-tag{background:#ffffff10;color:#fff;border-color:#ffffff25}
+.press-stack{display:grid;gap:16px}.press-card{padding:27px;border-radius:28px;border:1px solid #fff;background:linear-gradient(145deg,#fff,#fff2f7);box-shadow:0 14px 46px #70284c10}.press-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}.press-top h3{font-size:1.45rem;margin:0}.press-count{padding:7px 10px;border-radius:999px;background:#ffe7f2;border:1px solid #f5bfd7;color:#9b5577;font-size:.73rem;font-weight:900}
+.press-two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.press-lines{display:grid}.press-lines div{padding:11px 0;border-top:1px solid var(--line);color:#725567}.press-lines div:first-child{border-top:0}
+.contact-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}.contact-list{display:grid}.contact-row{display:flex;justify-content:space-between;gap:18px;padding:14px 0;border-top:1px solid var(--line);position:relative;z-index:2}.contact-row:first-child{border-top:0}.contact-row span{color:#a37b92}.contact-row a,.contact-row b{text-align:right;font-weight:850}.resource{padding:18px;border-radius:20px;background:#fff2f7;border:1px solid #f2c6d9;margin-bottom:12px;position:relative;z-index:2}.resource small{display:block;color:#a46b87;margin-bottom:4px}.resource a{font-weight:900;color:#6d2148}
+.ig-highlights{margin-top:16px}.ig-highlights .press-tag{background:#f7f0ff;border-color:#e3d7f8;color:#654c7a}
+@media(max-width:820px){.press-grid,.press-two,.contact-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -146,8 +160,10 @@ footer{padding:28px 0 42px;color:#9d7f8f;border-top:1px solid var(--line)}
     <a class="logo" href="#top">DJ <i>ANYA KAIZY</i></a>
     <div class="menu">
       <a href="#about">About</a>
+      <a href="#genres">Genres</a>
       <a href="#experience">Experience</a>
-      <a class="book" href="https://ig.me/m/dj_anyakaizy" target="_blank" rel="noopener">BOOK DJ</a>
+      <a href="#contact">Contact</a>
+      <a class="book" href="https://wa.me/6285718775381?text=Halo%20DJ%20Anya%20Kaizy%2C%20saya%20mau%20tanya%20availability%20untuk%20event." target="_blank" rel="noopener">BOOK DJ</a>
     </div>
   </div>
 </nav>
@@ -163,7 +179,7 @@ footer{padding:28px 0 42px;color:#9d7f8f;border-top:1px solid var(--line)}
           <span class="chip">ALL GENRE</span><span class="chip">CLUB</span><span class="chip">HOTEL</span><span class="chip">FESTIVAL</span><span class="chip">PRIVATE PARTY</span><span class="chip">SPECIAL EVENT</span>
         </div>
         <div class="btns">
-          <a class="btn primary" href="https://ig.me/m/dj_anyakaizy" target="_blank" rel="noopener">DIRECT BOOKING ↗</a>
+          <a class="btn primary" href="https://wa.me/6285718775381?text=Halo%20DJ%20Anya%20Kaizy%2C%20saya%20mau%20tanya%20availability%20untuk%20event." target="_blank" rel="noopener">DIRECT BOOKING ↗</a>
           <a class="btn soft" href="https://www.instagram.com/dj_anyakaizy/" target="_blank" rel="noopener">INSTAGRAM ↗</a>
         </div>
       </div>
@@ -177,26 +193,38 @@ footer{padding:28px 0 42px;color:#9d7f8f;border-top:1px solid var(--line)}
     </div>
   </div>
 
+
   <section id="about">
     <div class="wrap">
       <div class="section-head">
-        <div><div class="kicker">Profile</div><h2>Sweet look.<br>Serious energy.</h2></div>
-        <p>Based in Bali, Anya Kaizy has been performing as a DJ since 2023 with an all-genre format built for adaptable crowds and different event atmospheres.</p>
+        <div><div class="kicker">Official Press Kit</div><h2>About Anya Kaizy</h2></div>
+        <p>Female DJ from Bali with a versatile, energetic all-genre approach designed to adapt to different audiences, moods and event concepts.</p>
       </div>
-      <div class="profile-grid">
+      <div class="press-grid">
+        <article class="card press-copy">
+          <p><b>Anya Kaizy</b> is a female DJ who began her musical journey in 2023, bringing a versatile and energetic presence to every performance. With the ability to explore and blend various genres, Anya Kaizy creates dynamic sets that can adapt to different audiences, moods, and event concepts.</p>
+          <p>Throughout her journey, Anya Kaizy has performed at various events including bazaars, weddings, gatherings, and graduation celebrations. Her versatility and ability to connect with the crowd allow her to deliver an engaging musical experience for every occasion.</p>
+          <p>With a passion for music and continuous growth behind the decks, Anya Kaizy continues to develop her identity as a DJ and bring fresh energy to every stage she steps onto.</p>
+        </article>
         <article class="card">
-          <div class="kicker">DJ ANYA KAIZY</div>
-          <div class="quote">“Read the room, lift the mood, keep the night moving.”</div>
-          <p>From intimate gatherings to high-energy nightlife, the set direction can shift with the room while keeping a confident, feminine stage presence.</p>
+          <div class="meta"><span>Real name</span><b>Gusti Ayu Nanda Sania Dewi</b></div>
+          <div class="meta"><span>Stage name</span><b>Anya Kaizy</b></div>
+          <div class="meta"><span>DJ since</span><b>2023</b></div>
+          <div class="meta"><span>Based</span><b>Bali, Indonesia</b></div>
+          <div class="meta"><span>Format</span><b>Female DJ · All Genre</b></div>
           <div class="affil"><span>@pullmanbali</span><span>@bali.district</span></div>
         </article>
-        <article class="card">
-          <div class="meta"><span>Stage name</span><b>Anya Kaizy</b></div>
-          <div class="meta"><span>Based</span><b>Bali, Indonesia</b></div>
-          <div class="meta"><span>Active since</span><b>2023</b></div>
-          <div class="meta"><span>Format</span><b>All Genre</b></div>
-          <div class="meta"><span>Available for</span><b>Club · Hotel · Event · Private</b></div>
-        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="genres">
+    <div class="wrap">
+      <div class="genre-panel">
+        <div class="kicker">Genre</div>
+        <h2>All genre. Built to fit the room.</h2>
+        <p>The official press kit lists EDM, House, Breakbeat, Funkot, Koplo, R&amp;B, HipHop, Amapiano, Afro and more.</p>
+        <div class="press-tags"><span class="press-tag">EDM</span><span class="press-tag">HOUSE</span><span class="press-tag">BREAKBEAT</span><span class="press-tag">FUNKOT</span><span class="press-tag">KOPLO</span><span class="press-tag">R&amp;B</span><span class="press-tag">HIPHOP</span><span class="press-tag">AMAPIANO</span><span class="press-tag">AFRO</span></div>
       </div>
     </div>
   </section>
@@ -204,30 +232,57 @@ footer{padding:28px 0 42px;color:#9d7f8f;border-top:1px solid var(--line)}
   <section id="experience" class="experience">
     <div class="wrap">
       <div class="section-head">
-        <div><div class="kicker">Experience</div><h2>Rooms, stages<br>& celebrations.</h2></div>
-        <p>Selected venues and event moments from Anya Kaizy’s performance highlights.</p>
+        <div><div class="kicker">Experience Event</div><h2>Experience</h2></div>
+        <p>Full venue and event list from the official press kit, plus the additional highlights visible on the supplied Instagram profile.</p>
       </div>
-
-      <div class="experience-grid">
-        <article class="xcard"><div class="num">01 · HOTEL</div><h3>Pullman Bali</h3><p>Hotel & lifestyle event atmosphere.</p></article>
-        <article class="xcard"><div class="num">02 · CLUB</div><h3>Boshe Bali</h3><p>Nightlife stage experience.</p></article>
-        <article class="xcard"><div class="num">03 · BAR</div><h3>Koka Bar</h3><p>Late-night bar energy.</p></article>
-        <article class="xcard"><div class="num">04 · BAR</div><h3>Bliss Bar</h3><p>Social nightlife session.</p></article>
-        <article class="xcard"><div class="num">05 · HOTEL</div><h3>Harris Hotel</h3><p>Hotel event performance.</p></article>
-        <article class="xcard"><div class="num">06 · HOTEL</div><h3>Vouk Hotel</h3><p>Special event setting.</p></article>
-        <article class="xcard"><div class="num">07 · EVENT</div><h3>Festival Event</h3><p>Open-format crowd experience.</p></article>
-        <article class="xcard"><div class="num">08 · PRIVATE</div><h3>Private Party</h3><p>Curated music for intimate celebrations.</p></article>
-        <article class="xcard"><div class="num">09 · EVENT</div><h3>Gathering Event</h3><p>Flexible set for social & community events.</p></article>
-        <article class="xcard"><div class="num">10 · RESTO</div><h3>Milano Resto</h3><p>Dining-to-nightlife transition vibe.</p></article>
-        <article class="xcard"><div class="num">11 · CLUB</div><h3>Avera Club</h3><p>Club-oriented performance highlight.</p></article>
-        <article class="xcard"><div class="num">12 · VENUE</div><h3>Yellowna Bar</h3><p>Bar & entertainment experience.</p></article>
-      </div>
-
-      <div class="marquee" aria-hidden="true">
-        <div class="marquee-track">
-          <span>GG COFFEE</span><span>KIJANG PANTHER</span><span>H3LLO DJ SCHOOL</span><span>EVENT STT</span><span>BALI DISTRICT</span><span>PRIVATE PARTY</span>
-          <span>GG COFFEE</span><span>KIJANG PANTHER</span><span>H3LLO DJ SCHOOL</span><span>EVENT STT</span><span>BALI DISTRICT</span><span>PRIVATE PARTY</span>
+      <div class="press-stack">
+        <article class="press-card">
+          <div class="press-top"><h3>Bar / Club</h3><span class="press-count">38 venues</span></div>
+          <div class="press-tags"><span class="press-tag">MID LEVEL BALI</span><span class="press-tag">RDV BAR</span><span class="press-tag">BALI STREET BAR</span><span class="press-tag">GENZA SPACE BAR</span><span class="press-tag">RAINBOW BAR</span><span class="press-tag">OUTSIDE DRINKERY BALI</span><span class="press-tag">BALI ZOOM</span><span class="press-tag">RATU BAR</span><span class="press-tag">LENOX BALI BAR</span><span class="press-tag">TRIPLE THREE BAR</span><span class="press-tag">LOVE STORY BAR</span><span class="press-tag">PARIVAIRA BAR NEGARE</span><span class="press-tag">HUSH BAR</span><span class="press-tag">BEER &amp; CO CANGGU</span><span class="press-tag">BOTTLES STATION BAR</span><span class="press-tag">KIJANG PANTER BAR</span><span class="press-tag">DOOM KITCHEN &amp; BAR</span><span class="press-tag">BLACKOUT BAR</span><span class="press-tag">SPIRIT UNION BAR</span><span class="press-tag">BROTHER CLUB</span><span class="press-tag">BLIND BEAR LOUNGE BAR</span><span class="press-tag">EDGE BAR</span><span class="press-tag">KAMRAT CAFE MUSIC</span><span class="press-tag">LEHA-LEHA BAR</span><span class="press-tag">TEKA BAR</span><span class="press-tag">PHINISI CRUISE</span><span class="press-tag">COLO SPORT BAR</span><span class="press-tag">TIPSY BALI</span><span class="press-tag">BOSHE BALI</span><span class="press-tag">WIZZY BAR &amp; KITCHEN</span><span class="press-tag">ZOI BAR</span><span class="press-tag">AMBARA CAFE</span><span class="press-tag">BALI DISTRICT BAR</span><span class="press-tag">AVERA CLUB</span><span class="press-tag">ENGINE ROOM CLUB</span><span class="press-tag">BLISS LOUNGE BAR</span><span class="press-tag">MASTER PIECE LOUNGE BAR</span><span class="press-tag">UTAMA BAR</span></div>
+        </article>
+        <div class="press-two">
+          <article class="press-card">
+            <div class="press-top"><h3>Festival Event</h3><span class="press-count">11 entries</span></div>
+            <div class="press-tags"><span class="press-tag">ICON MALL</span><span class="press-tag">BEACHWALK MALL</span><span class="press-tag">WEDDING PARTY</span><span class="press-tag">WEDDING PARTY INDONESIAN</span><span class="press-tag">WEDDING PARTY BALINESE</span><span class="press-tag">HUT STT KINTAMANI</span><span class="press-tag">HUT STT BALI</span><span class="press-tag">EVENT STT KINTAMANI</span><span class="press-tag">HUT STT KARANGASEM</span><span class="press-tag">HUT STT TABANAN</span><span class="press-tag">HUT STT NEGARE</span></div>
+          </article>
+          <article class="press-card">
+            <div class="press-top"><h3>Hotel</h3><span class="press-count">4 hotels</span></div>
+            <div class="press-tags"><span class="press-tag">HOTEL HARRIS SUNSET ROAD</span><span class="press-tag">HOTEL MONTIGO</span><span class="press-tag">PULLMAN HOTEL</span><span class="press-tag">LEGIAN HOTEL</span></div>
+          </article>
         </div>
+        <article class="press-card">
+          <div class="press-top"><h3>New Year's Event</h3><span class="press-count">4 entries</span></div>
+          <div class="press-lines"><div>HARRIS HOTEL SUNSET ROAD (NEW YEAR'S 2024)</div><div>BEER GARDEN SANUR (NEW YEAR'S 2025)</div><div>WARUNG IGA JIMBARAN (NEW YEAR'S 2026)</div><div>VOUK HOTEL NUSA DUA (NEW YEAR'S 2027)</div></div>
+        </article>
+        <article class="press-card ig-highlights">
+          <div class="press-top"><h3>Instagram Highlights</h3><span class="press-count">profile highlights</span></div>
+          <div class="press-tags"><span class="press-tag">YELLowna BAR</span><span class="press-tag">KOKA BAR</span><span class="press-tag">MILANO RESTO</span><span class="press-tag">GG COFFEE</span><span class="press-tag">H3LLO DJ SCHOOL</span><span class="press-tag">PRIVATE PARTY</span><span class="press-tag">GATHERING EVENT</span><span class="press-tag">EVENT STT</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap">
+      <div class="section-head">
+        <div><div class="kicker">Contact Info</div><h2>Booking & Media</h2></div>
+        <p>All contact details, social handles and media-resource links listed in the press kit.</p>
+      </div>
+      <div class="contact-grid">
+        <article class="card contact-list">
+          <div class="contact-row"><span>Email</span><a href="mailto:anyakaizy@gmail.com">anyakaizy@gmail.com</a></div>
+          <div class="contact-row"><span>WhatsApp 1</span><a href="https://wa.me/6285718775381" target="_blank" rel="noopener">0857 1877 5381</a></div>
+          <div class="contact-row"><span>WhatsApp 2</span><a href="https://wa.me/6281929160142" target="_blank" rel="noopener">0819 2916 0142</a></div>
+          <div class="contact-row"><span>Instagram</span><a href="https://www.instagram.com/dj_anyakaizy/" target="_blank" rel="noopener">@dj_anyakaizy</a></div>
+          <div class="contact-row"><span>TikTok</span><a href="https://www.tiktok.com/@fdj.anyakaizy" target="_blank" rel="noopener">@fdj.anyakaizy</a></div>
+          <div class="contact-row"><span>Threads</span><a href="https://www.threads.net/@dj_anyakaizy" target="_blank" rel="noopener">@dj_anyakaizy</a></div>
+          <div class="contact-row"><span>Location</span><b>Indonesia, Bali</b></div>
+        </article>
+        <article class="card">
+          <div class="resource"><small>Links Drive · Image</small><a href="https://drive.google.com/drive/folders/1s3CvV5es6OWyu__1Rvao_G-KV2p5CXQp" target="_blank" rel="noopener">OPEN IMAGE DRIVE ↗</a></div>
+          <div class="resource"><small>Links Drive · Video</small><a href="https://drive.google.com/drive/folders/1y3kf_rEHB1q6ISQa-S0JtC5nCDoBuDFn" target="_blank" rel="noopener">OPEN VIDEO DRIVE ↗</a></div>
+          <p>Official media resources referenced in the FDJ Anya Kaizy press kit.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -235,22 +290,24 @@ footer{padding:28px 0 42px;color:#9d7f8f;border-top:1px solid var(--line)}
   <section id="booking">
     <div class="wrap">
       <div class="booking">
-        <div class="kicker">Booking</div>
-        <h2>Bring Anya Kaizy to your next night.</h2>
-        <p>Club night, hotel event, birthday, private party, gathering, launching, festival or other special event. Send the event date, venue, city and set duration for availability.</p>
+        <div class="kicker">Direct Booking</div>
+        <h2>Bring Anya Kaizy to your next event.</h2>
+        <p>Club night, hotel event, bazaar, wedding, gathering, graduation celebration, festival, private party or other special event. Send the date, venue, city and set duration for availability.</p>
         <div class="socials">
-          <a class="btn" href="https://ig.me/m/dj_anyakaizy" target="_blank" rel="noopener">DIRECT BOOKING ↗</a>
-          <a class="btn alt" href="https://www.instagram.com/dj_anyakaizy/" target="_blank" rel="noopener">@DJ_ANYAKAIZY ↗</a>
-          <a class="btn alt" href="https://www.threads.net/@dj_anyakaizy" target="_blank" rel="noopener">THREADS ↗</a>
+          <a class="btn" href="https://wa.me/6285718775381?text=Halo%20DJ%20Anya%20Kaizy%2C%20saya%20mau%20tanya%20availability%20untuk%20event." target="_blank" rel="noopener">WHATSAPP 1 ↗</a>
+          <a class="btn alt" href="https://wa.me/6281929160142?text=Halo%20DJ%20Anya%20Kaizy%2C%20saya%20mau%20tanya%20availability%20untuk%20event." target="_blank" rel="noopener">WHATSAPP 2 ↗</a>
+          <a class="btn alt" href="mailto:anyakaizy@gmail.com">EMAIL ↗</a>
+          <a class="btn alt" href="https://www.instagram.com/dj_anyakaizy/" target="_blank" rel="noopener">INSTAGRAM ↗</a>
         </div>
       </div>
     </div>
   </section>
+
 </main>
 
 <footer>
   <div class="wrap foot">
-    <div class="micro">© 2026 DJ ANYA KAIZY · Bali, Indonesia</div>
+    <div class="micro">© 2026 DJ ANYA KAIZY · FDJ ANYA KAIZY PRESSKIT OFFICIAL · Bali, Indonesia</div>
     <a class="nadmo" href="https://nadmo.id/" target="_blank" rel="noopener">By NADMO STUDIO ↗</a>
   </div>
 </footer>
