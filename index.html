@@ -1,219 +1,41 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="ACC DJ" />
-  <meta name="description" content="ACC DJ PWA prototype — 2-deck streaming DJ mixer powered by Audius." />
-  <link rel="manifest" href="/manifest.webmanifest?v=8" />
-  <link rel="icon" href="/icon-192.png?v=8" type="image/png" sizes="192x192" />
-  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
-  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=8" />
-  <link rel="stylesheet" href="styles.css" />
-  <title>ACC DJ — Engine v1</title>
-  <link rel="shortcut icon" href="/favicon.ico?v=8" />
-</head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06140d"><title>DJ OKA RADITYA — Bali DJ</title>
+<meta name="description" content="DJ Oka Raditya — All Genre DJ based in Denpasar, Bali. Available for club, wedding, launching, bazaar, birthday, private party and more.">
+<style>
+:root{--bg:#06140d;--bg2:#091d13;--card:#0d271a;--line:#ffffff18;--text:#f4f7f4;--muted:#a8b9ae;--green:#8cf2ad;--deep:#123824}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 75% 5%,#174f2f55,transparent 30%),linear-gradient(180deg,var(--bg),#030a06 70%);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}a{color:inherit;text-decoration:none}.wrap{width:min(1120px,calc(100% - 34px));margin:auto}
+nav{position:fixed;z-index:20;top:15px;left:0;right:0}.nav{width:min(1080px,calc(100% - 34px));margin:auto;min-height:58px;padding:9px 10px 9px 18px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:999px;background:#06140dd9;backdrop-filter:blur(18px)}.logo{font-size:.79rem;font-weight:950;letter-spacing:.14em}.logo i{color:var(--green);font-style:normal}.menu{display:flex;align-items:center;gap:7px}.menu a{font-size:.84rem;color:#b8c7be;padding:10px 12px}.menu .book{background:var(--green);color:#062111;border-radius:999px;font-weight:900}
+.hero{min-height:100svh;padding:120px 0 70px;display:flex;align-items:center}.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:60px;align-items:center}.badge{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#ffffff08;font-size:.75rem;font-weight:850;letter-spacing:.13em}.badge:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 18px var(--green)}
+h1{margin:22px 0 20px;font-size:clamp(4.2rem,10vw,8.6rem);line-height:.8;letter-spacing:-.075em}h1 span{display:block;color:var(--green)}.lead{max-width:630px;color:#b7c6bc;font-size:clamp(1.02rem,2vw,1.25rem);line-height:1.7}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:25px 0}.chip{padding:9px 12px;border:1px solid var(--line);border-radius:999px;background:#ffffff07;font-size:.78rem;font-weight:750}.btns{display:flex;flex-wrap:wrap;gap:10px}.btn{min-height:52px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--line);background:#0b2116;font-weight:900}.btn.primary{background:var(--green);color:#062111;border-color:transparent}
+.portrait{position:relative;border-radius:38px;overflow:hidden;min-height:610px;border:1px solid #ffffff20;background:linear-gradient(145deg,#153923,#07140d);box-shadow:0 35px 100px #0009}.portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}.portrait:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#06140dcc,transparent 38%)}.photo-tag{position:absolute;z-index:2;left:24px;bottom:24px;right:24px;display:flex;justify-content:space-between;gap:16px;align-items:end}.photo-tag small{display:block;color:#a9b9af;letter-spacing:.12em}.photo-tag strong{font-size:1.25rem}
+section{padding:86px 0}.kicker{font-size:.75rem;color:#84a28f;text-transform:uppercase;letter-spacing:.15em;font-weight:900}h2{font-size:clamp(2.4rem,6vw,4.5rem);line-height:.95;letter-spacing:-.055em;margin:8px 0 28px}.profile-grid,.event-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.card{min-height:210px;padding:25px;border:1px solid var(--line);border-radius:26px;background:linear-gradient(150deg,#102c1d,#08150e);position:relative;overflow:hidden}.card .n{position:absolute;top:16px;right:20px;font-weight:950;color:#ffffff15;font-size:3rem}.card h3{margin:40px 0 8px;font-size:1.35rem}.card p{margin:0;color:var(--muted);line-height:1.65}.meta{display:flex;justify-content:space-between;gap:16px;padding:15px 0;border-top:1px solid var(--line)}.meta span:first-child{color:#809d8a}.meta b{text-align:right}
+.booking{padding:clamp(28px,6vw,64px);border:1px solid var(--line);border-radius:36px;background:radial-gradient(circle at 90% 10%,#66e49528,transparent 30%),linear-gradient(145deg,#123824,#08170f)}.booking h2{max-width:760px}.booking p{color:var(--muted);max-width:650px;font-size:1.05rem}.social{margin-top:14px;color:#8fa99a}.social a{color:var(--green);font-weight:850}
+footer{padding:28px 0 42px;color:#769082;border-top:1px solid var(--line)}.foot{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}.nadmo{color:#c6d4cb;font-weight:850}
+@media(max-width:800px){.menu a:not(.book){display:none}.hero{padding-top:96px}.hero-grid{grid-template-columns:1fr;gap:28px}.portrait{order:-1;min-height:480px;border-radius:28px}h1{font-size:clamp(4rem,21vw,6.7rem)}.profile-grid,.event-grid{grid-template-columns:1fr}section{padding:64px 0}.btn{width:100%}}
+</style></head>
 <body>
-  <div id="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark brand-logo"><img src="/icon-192.png?v=8" alt="ACC DJ" /></div>
-        <div>
-          <h1>DJ</h1>
-          <p>STREAM • MIX • CUE</p>
-        </div>
-      </div>
-      <div class="top-actions">
-        <span id="audioStatus" class="status-dot">Audio idle</span>
-        <button id="djModeBtn" class="ghost focus-btn">DJ MODE</button>
-        <button id="installBtn" class="ghost install-btn" hidden>INSTALL</button>
-        <button id="musicBtn" class="primary music-toggle">♫ MUSIC</button>
-        <button id="settingsBtn" class="ghost api-btn">API</button>
-      </div>
-    </header>
-
-    <main>
-      <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
-      <section id="musicDrawer" class="library panel music-drawer" aria-hidden="true">
-        <div class="music-drawer-head">
-          <div>
-            <strong>MUSIC BROWSER</strong>
-            <span>Audius streaming • pilih lagu lalu LOAD ke Deck A/B</span>
-          </div>
-          <button id="closeMusicBtn" class="ghost" type="button">✕</button>
-        </div>
-        <div class="quick-genres" aria-label="Quick genres">
-          <button data-genre="" class="genre-chip active">TRENDING</button>
-          <button data-genre="House" class="genre-chip">HOUSE</button>
-          <button data-genre="Tech House" class="genre-chip">TECH HOUSE</button>
-          <button data-genre="Deep House" class="genre-chip">DEEP HOUSE</button>
-          <button data-genre="Techno" class="genre-chip">TECHNO</button>
-          <button data-genre="Trance" class="genre-chip">TRANCE</button>
-          <button data-genre="Drum & Bass" class="genre-chip">DNB</button>
-          <button data-genre="Dubstep" class="genre-chip">DUBSTEP</button>
-          <button data-genre="Electronic" class="genre-chip">ELECTRONIC</button>
-          <button data-genre="Future House" class="genre-chip">FUTURE</button>
-          <button data-genre="Progressive House" class="genre-chip">PROGRESSIVE</button>
-        </div>
-        <div class="library-row">
-          <div class="search-wrap">
-            <input id="searchInput" type="search" placeholder="Cari track / artist di Audius..." autocomplete="off" />
-            <button id="searchBtn" class="primary">SEARCH</button>
-          </div>
-          <div class="filters">
-            <select id="genreSelect" aria-label="Genre">
-              <option value="">Semua genre</option>
-              <option>House</option>
-              <option>Tech House</option>
-              <option>Deep House</option>
-              <option>Techno</option>
-              <option>Trance</option>
-              <option>Drum & Bass</option>
-              <option>Dubstep</option>
-              <option>Electronic</option>
-              <option>Future House</option>
-              <option>Progressive House</option>
-            </select>
-            <button id="trendingBtn" class="ghost">TRENDING</button>
-          </div>
-        </div>
-        <div id="libraryMessage" class="library-message">Masukkan kata kunci atau buka Trending.</div>
-        <div id="results" class="results"></div>
-        <div class="browser-footer"><button id="moreBtn" class="ghost" type="button" hidden>MORE TRACKS</button></div>
-      </section>
-
-      <section class="decks-grid">
-        <article class="deck panel" data-deck="A">
-          <div class="deck-head">
-            <span class="deck-label">DECK A</span>
-            <div class="deck-head-actions"><button class="master-btn active" data-action="master" data-deck="A">MASTER</button><button class="cue-btn" data-action="cue" data-deck="A">CUE A</button></div>
-          </div>
-          <div class="track-meta">
-            <img id="coverA" class="cover" alt="Cover Deck A" src="icons/placeholder.svg" />
-            <div class="track-copy">
-              <h2 id="titleA">No track loaded</h2>
-              <p id="artistA">Audius</p>
-              <div class="chips"><span id="bpmA">BPM —</span><span id="keyA">KEY —</span><span id="gridA">GRID —</span></div>
-            </div>
-          </div>
-          <canvas id="waveA" class="wave" width="900" height="130"></canvas>
-          <input id="seekA" class="seek" type="range" min="0" max="1000" value="0" />
-          <div class="time-row"><span id="timeA">00:00</span><span id="durationA">00:00</span></div>
-          <div class="transport">
-            <button class="transport-btn" data-action="play" data-deck="A">▶</button>
-            <button class="transport-btn" data-action="restart" data-deck="A">↺</button>
-            <button class="transport-btn sync-btn" data-action="sync" data-deck="A">SYNC</button>
-            <button class="transport-btn" data-action="loop" data-deck="A">LOOP</button>
-          </div>
-          <div class="nudge-row">
-            <button class="nudge-btn" data-action="nudge" data-dir="-1" data-deck="A">◀ NUDGE</button>
-            <span id="syncStateA" class="sync-state">FREE</span>
-            <button class="nudge-btn" data-action="nudge" data-dir="1" data-deck="A">NUDGE ▶</button>
-          </div>
-          <div class="controls-row">
-            <label>LOW<input id="lowA" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>MID<input id="midA" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>HIGH<input id="highA" type="range" min="-18" max="12" value="0" step="1" /></label>
-          </div>
-          <div class="pitch-row">
-            <label>PITCH <span id="pitchLabelA">0.0%</span></label>
-            <input id="pitchA" type="range" min="-8" max="8" value="0" step="0.1" />
-          </div>
-        </article>
-
-        <article class="mixer panel">
-          <div class="mixer-title">MIXER</div>
-          <div class="meters">
-            <div><span>A</span><meter id="meterA" min="0" max="1" value="0"></meter></div>
-            <div><span>B</span><meter id="meterB" min="0" max="1" value="0"></meter></div>
-          </div>
-          <label class="master-control">MASTER
-            <input id="masterVol" type="range" min="0" max="1" value="0.85" step="0.01" />
-          </label>
-          <div class="cue-mode">
-            <button id="splitCueBtn" class="mode-btn">SPLIT CUE: OFF</button>
-            <p id="cueHelp">Normal: master stereo.</p>
-          </div>
-          <div class="xfade-wrap">
-            <div class="xfade-label"><span>A</span><strong>CROSSFADER</strong><span>B</span></div>
-            <input id="crossfader" class="crossfader" type="range" min="-1" max="1" value="0" step="0.01" />
-          </div>
-          <div class="mixer-info">
-            <strong>Split Cue</strong>
-            <span>LEFT = Master mono</span>
-            <span>RIGHT = Cue mono</span>
-          </div>
-        </article>
-
-        <article class="deck panel" data-deck="B">
-          <div class="deck-head">
-            <span class="deck-label">DECK B</span>
-            <div class="deck-head-actions"><button class="master-btn" data-action="master" data-deck="B">MASTER</button><button class="cue-btn" data-action="cue" data-deck="B">CUE B</button></div>
-          </div>
-          <div class="track-meta">
-            <img id="coverB" class="cover" alt="Cover Deck B" src="icons/placeholder.svg" />
-            <div class="track-copy">
-              <h2 id="titleB">No track loaded</h2>
-              <p id="artistB">Audius</p>
-              <div class="chips"><span id="bpmB">BPM —</span><span id="keyB">KEY —</span><span id="gridB">GRID —</span></div>
-            </div>
-          </div>
-          <canvas id="waveB" class="wave" width="900" height="130"></canvas>
-          <input id="seekB" class="seek" type="range" min="0" max="1000" value="0" />
-          <div class="time-row"><span id="timeB">00:00</span><span id="durationB">00:00</span></div>
-          <div class="transport">
-            <button class="transport-btn" data-action="play" data-deck="B">▶</button>
-            <button class="transport-btn" data-action="restart" data-deck="B">↺</button>
-            <button class="transport-btn sync-btn" data-action="sync" data-deck="B">SYNC</button>
-            <button class="transport-btn" data-action="loop" data-deck="B">LOOP</button>
-          </div>
-          <div class="nudge-row">
-            <button class="nudge-btn" data-action="nudge" data-dir="-1" data-deck="B">◀ NUDGE</button>
-            <span id="syncStateB" class="sync-state">FREE</span>
-            <button class="nudge-btn" data-action="nudge" data-dir="1" data-deck="B">NUDGE ▶</button>
-          </div>
-          <div class="controls-row">
-            <label>LOW<input id="lowB" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>MID<input id="midB" type="range" min="-18" max="12" value="0" step="1" /></label>
-            <label>HIGH<input id="highB" type="range" min="-18" max="12" value="0" step="1" /></label>
-          </div>
-          <div class="pitch-row">
-            <label>PITCH <span id="pitchLabelB">0.0%</span></label>
-            <input id="pitchB" type="range" min="-8" max="8" value="0" step="0.1" />
-          </div>
-        </article>
-      </section>
-
-      <section class="notes panel">
-        <strong>ACC DJ Engine v1:</strong> live beat-anchor analysis + master/follower chase. <strong>HP / Android:</strong> Split Cue memakai satu output stereo sebagai dua jalur mono. Agar Master dan Cue benar-benar terpisah, pakai USB-C audio DAC + DJ split-cue cable (bukan splitter headphone biasa). PWA tidak menyimpan file lagu permanen; audio di-stream saat diputar.
-      </section>
-    </main>
-
-    <dialog id="settingsDialog">
-      <form method="dialog" class="dialog-card">
-        <div class="dialog-head">
-          <div><strong>Audius API</strong><p>API key frontend aman menurut dokumentasi Audius.</p></div>
-          <button value="cancel" class="ghost">✕</button>
-        </div>
-        <label>API Key
-          <input id="apiKeyInput" type="text" placeholder="Tempel Audius API key di sini" autocomplete="off" />
-        </label>
-        <p class="hint">Tanpa key, prototype mencoba Public Mode. Untuk hasil paling stabil gunakan free Audius API key.</p>
-        <div class="dialog-actions">
-          <button id="clearKeyBtn" type="button" class="ghost">CLEAR</button>
-          <button id="saveKeyBtn" value="default" class="primary">SAVE</button>
-        </div>
-      </form>
-    </dialog>
-  </div>
-
-  <audio id="audioA" crossorigin="anonymous" preload="metadata"></audio>
-  <audio id="audioB" crossorigin="anonymous" preload="metadata"></audio>
-  <script src="https://cdn.jsdelivr.net/npm/@audius/sdk@latest/dist/sdk.min.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
+<nav><div class="nav"><a class="logo" href="#top">DJ OKA <i>RADITYA</i></a><div class="menu"><a href="#profile">Profile</a><a href="#events">Events</a><a class="book" href="https://wa.me/628970638195?text=Halo%20DJ%20Oka%20Raditya%2C%20saya%20mau%20tanya%20availability%20untuk%20event." target="_blank" rel="noopener">BOOKING</a></div></div></nav>
+<main id="top">
+<div class="wrap hero"><div class="hero-grid">
+<div><span class="badge">DENPASAR · BALI</span><h1>OKA<span>RADITYA</span></h1><p class="lead">All-genre DJ based in Bali. Ready for club nights, weddings, launches, bazaars, birthdays, private parties, and more.</p>
+<div class="chips"><span class="chip">ALL GENRE</span><span class="chip">CLUB</span><span class="chip">WEDDING</span><span class="chip">LAUNCHING</span><span class="chip">BAZAAR</span><span class="chip">BIRTHDAY</span><span class="chip">PRIVATE PARTY</span></div>
+<div class="btns"><a class="btn primary" href="https://wa.me/628970638195?text=Halo%20DJ%20Oka%20Raditya%2C%20saya%20mau%20tanya%20availability%20untuk%20event." target="_blank" rel="noopener">DIRECT BOOKING ↗</a><a class="btn" href="https://www.instagram.com/dj_okaraditya16/" target="_blank" rel="noopener">INSTAGRAM ↗</a></div></div>
+<div class="portrait"><img src="data:image/jpeg;base64,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" alt="DJ Oka Raditya portrait"><div class="photo-tag"><div><small>DJ / BALI</small><strong>Oka Raditya</strong></div><small>ALL GENRE</small></div></div>
+</div></div>
+<section id="profile"><div class="wrap"><div class="kicker">Profile</div><h2>Versatile sound.<br>One booking, many rooms.</h2><div class="profile-grid">
+<article class="card"><span class="n">01</span><h3>All Genre</h3><p>Flexible selection built to read the room, move the crowd, and match the atmosphere of each event.</p></article>
+<article class="card"><span class="n">02</span><h3>Based in Bali</h3><p>Denpasar-based DJ available for nightlife, celebrations, brand events, and private functions.</p></article>
+<article class="card"><span class="n">03</span><h3>Event Ready</h3><p>Club, wedding, launching, bazaar, birthday, private party, and other selected events.</p></article>
+</div></div></section>
+<section id="events"><div class="wrap"><div class="kicker">Available For</div><h2>From club floor<br>to private celebration.</h2><div class="event-grid">
+<article class="card"><span class="n">01</span><h3>Club & Nightlife</h3><p>All-genre sets tailored to venue energy and crowd direction.</p></article>
+<article class="card"><span class="n">02</span><h3>Wedding & Birthday</h3><p>Flexible music flow for receptions, celebrations, and special moments.</p></article>
+<article class="card"><span class="n">03</span><h3>Launching & Bazaar</h3><p>Music support for brand launches, bazaars, activations, and community events.</p></article>
+</div></div></section>
+<section><div class="wrap"><div class="booking"><div class="kicker">Direct Booking</div><h2>Book DJ Oka Raditya for your next event.</h2><p>Send the event date, venue, event type, and performance time to check availability directly.</p><div class="btns"><a class="btn primary" href="https://wa.me/628970638195?text=Halo%20DJ%20Oka%20Raditya%2C%20saya%20mau%20tanya%20availability%20untuk%20event." target="_blank" rel="noopener">BOOK VIA WHATSAPP ↗</a><a class="btn" href="https://www.instagram.com/dj_okaraditya16/" target="_blank" rel="noopener">@DJ_OKARADITYA16 ↗</a></div><div class="social">Part of <a href="https://www.instagram.com/akucintamalam/" target="_blank" rel="noopener">@akucintamalam</a></div></div></div></section>
+</main>
+<footer><div class="wrap foot"><span>© 2026 DJ OKA RADITYA. All rights reserved.</span><a class="nadmo" href="https://nadmo.id/" target="_blank" rel="noopener noreferrer">By NADMO STUDIO ↗</a></div></footer>
+</body></html>
